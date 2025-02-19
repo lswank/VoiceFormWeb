@@ -279,4 +279,135 @@ class FormService {
   }
 }
 
-export const formService = new FormService(); 
+export const formService = new FormService();
+
+type ImportMethod = 'pdf' | 'image' | 'url';
+
+class FormImportService {
+  async extractFormFields(file: File | string, method: ImportMethod): Promise<Form> {
+    if (config.environment === 'local-ui') {
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Mock extracted form
+      const title = typeof file === 'string' 
+        ? new URL(file).pathname.split('/').pop()?.replace(/\.[^/.]+$/, '') || 'Imported Form'
+        : file.name.replace(/\.[^/.]+$/, '');
+
+      return {
+        id: 'new',
+        title,
+        description: `Form extracted from ${method.toUpperCase()}`,
+        fields: [
+          {
+            id: 'name',
+            type: 'text',
+            label: 'Full Name',
+            required: true,
+            placeholder: 'John Doe',
+          },
+          {
+            id: 'email',
+            type: 'email',
+            label: 'Email Address',
+            required: true,
+            placeholder: 'john@example.com',
+          },
+          {
+            id: 'phone',
+            type: 'phone',
+            label: 'Phone Number',
+            required: false,
+            placeholder: '+1 (555) 123-4567',
+          },
+          {
+            id: 'comments',
+            type: 'textarea',
+            label: 'Additional Comments',
+            required: false,
+            placeholder: 'Any additional information...',
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userId: 'preview',
+        status: 'draft',
+        responseCount: 0,
+      };
+    }
+
+    // In non-local environments, send to backend
+    const formData = new FormData();
+    if (typeof file === 'string') {
+      formData.append('url', file);
+    } else {
+      formData.append('file', file);
+    }
+    formData.append('method', method);
+
+    const response = await fetch(`${config.apiUrl}/forms/import`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to process ${method}`);
+    }
+
+    return response.json();
+  }
+
+  async createForm(form: Form): Promise<Form> {
+    if (config.environment === 'local-ui') {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      return {
+        ...form,
+        id: Math.random().toString(36).substring(7),
+      };
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(form),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create form');
+    }
+
+    return response.json();
+  }
+
+  async updateForm(id: string, form: Form): Promise<Form> {
+    if (config.environment === 'local-ui') {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      return {
+        ...form,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(form),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update form');
+    }
+
+    return response.json();
+  }
+}
+
+export const formImportService = new FormImportService(); 

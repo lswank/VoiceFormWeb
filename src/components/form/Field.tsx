@@ -32,62 +32,68 @@ function getInputType(fieldType: FieldType): InputType {
     case 'multiselect':
       return 'select';
     case 'voice':
+    default:
       return 'text';
   }
 }
 
 interface FieldProps {
   config: FieldConfig;
-  mode: 'builder' | 'display' | 'edit';
   onChange?: (value: any) => void;
-  onConfigChange?: (config: FieldConfig) => void;
+  onUpdate?: (updates: Partial<FieldConfig>) => void;
+  readOnly?: boolean;
   className?: string;
 }
 
-export function Field({ config, mode, onChange, onConfigChange, className }: FieldProps) {
+export function Field({
+  config,
+  onChange,
+  onUpdate,
+  readOnly = false,
+  className,
+}: FieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [localConfig, setLocalConfig] = useState(config);
 
-  const handleConfigChange = (updates: Partial<FieldConfig>) => {
+  const handleUpdate = (updates: Partial<FieldConfig>) => {
     const newConfig = { ...localConfig, ...updates };
     setLocalConfig(newConfig);
-    onConfigChange?.(newConfig);
+    onUpdate?.(updates);
   };
 
-  const renderBuilderControls = () => (
-    <div className="mt-2 space-y-4 rounded-md bg-secondary-50 p-4 dark:bg-secondary-800">
+  const renderFieldControls = () => (
+    <div className="mt-2 space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-          Required
-        </label>
-        <Switch
-          checked={localConfig.required}
-          onChange={(checked) => handleConfigChange({ required: checked })}
-          className={twMerge(
-            'relative inline-flex h-6 w-11 items-center rounded-full',
-            localConfig.required ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
-          )}
-        >
-          <span className="sr-only">Require this field</span>
-          <span
+        <Switch.Group as="div" className="flex items-center">
+          <Switch
+            checked={localConfig.required}
+            onChange={(checked) => handleUpdate({ required: checked })}
             className={twMerge(
-              'inline-block h-4 w-4 transform rounded-full bg-white transition',
-              localConfig.required ? 'translate-x-6' : 'translate-x-1'
+              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900',
+              localConfig.required
+                ? 'bg-primary-600 dark:bg-primary-500'
+                : 'bg-secondary-200 dark:bg-secondary-700'
             )}
-          />
-        </Switch>
+          >
+            <span
+              className={twMerge(
+                'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                localConfig.required ? 'translate-x-5' : 'translate-x-0'
+              )}
+            />
+          </Switch>
+          <Switch.Label className="ml-3 text-sm text-secondary-600 dark:text-secondary-400">
+            Required
+          </Switch.Label>
+        </Switch.Group>
       </div>
 
       <Input
-        label="Field Label"
-        value={localConfig.label}
-        onChange={(e) => handleConfigChange({ label: e.target.value })}
-      />
-
-      <Input
-        label="Help Text"
+        type="text"
         value={localConfig.helpText || ''}
-        onChange={(e) => handleConfigChange({ helpText: e.target.value })}
+        onChange={(e) => handleUpdate({ helpText: e.target.value })}
+        placeholder="Help text (optional)"
+        className="text-sm"
       />
 
       {(localConfig.type === 'select' || localConfig.type === 'multiselect') && (
@@ -98,20 +104,28 @@ export function Field({ config, mode, onChange, onConfigChange, className }: Fie
           {localConfig.options?.map((option, index) => (
             <div key={index} className="flex gap-2">
               <Input
+                type="text"
                 value={option.label}
                 onChange={(e) => {
                   const newOptions = [...(localConfig.options || [])];
-                  newOptions[index] = { ...option, label: e.target.value };
-                  handleConfigChange({ options: newOptions });
+                  newOptions[index] = {
+                    ...newOptions[index],
+                    label: e.target.value,
+                    value: e.target.value.toLowerCase().replace(/\s+/g, '-'),
+                  };
+                  handleUpdate({ options: newOptions });
                 }}
+                placeholder="Option label"
+                className="text-sm"
               />
               <button
                 type="button"
                 onClick={() => {
-                  const newOptions = localConfig.options?.filter((_, i) => i !== index);
-                  handleConfigChange({ options: newOptions });
+                  const newOptions = [...(localConfig.options || [])];
+                  newOptions.splice(index, 1);
+                  handleUpdate({ options: newOptions });
                 }}
-                className="text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-300"
+                className="rounded-md p-2 text-secondary-400 hover:text-secondary-500 dark:text-secondary-500 dark:hover:text-secondary-400"
               >
                 Remove
               </button>
@@ -120,8 +134,12 @@ export function Field({ config, mode, onChange, onConfigChange, className }: Fie
           <button
             type="button"
             onClick={() => {
-              const newOptions = [...(localConfig.options || []), { value: '', label: '' }];
-              handleConfigChange({ options: newOptions });
+              const newOptions = [...(localConfig.options || [])];
+              newOptions.push({
+                value: `option-${newOptions.length + 1}`,
+                label: `Option ${newOptions.length + 1}`,
+              });
+              handleUpdate({ options: newOptions });
             }}
             className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
           >
@@ -134,25 +152,40 @@ export function Field({ config, mode, onChange, onConfigChange, className }: Fie
 
   const renderField = () => {
     const inputType = getInputType(config.type);
-    
-    if (inputType === 'select') {
-      return (
-        <div>
-          <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300">
-            {config.label}
-          </label>
+
+    switch (inputType) {
+      case 'select':
+        return config.type === 'multiselect' ? (
           <select
-            value={config.value as string || ''}
-            onChange={(e) => onChange?.(e.target.value)}
-            required={config.required}
-            disabled={mode === 'display'}
+            multiple
+            value={Array.isArray(config.value) ? config.value : []}
+            onChange={(e) => {
+              const values = Array.from(e.target.selectedOptions).map(
+                (option) => option.value
+              );
+              onChange?.(values);
+            }}
             className={twMerge(
-              'mt-1 block w-full rounded-md shadow-sm',
-              'border-secondary-300 focus:border-primary-500 focus:ring-primary-500',
-              'dark:border-secondary-700 dark:bg-secondary-800 dark:text-white',
-              'dark:focus:border-primary-500 dark:focus:ring-primary-500'
+              'block w-full rounded-md border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:text-white sm:text-sm',
+              className
             )}
-            multiple={config.type === 'multiselect'}
+            disabled={readOnly}
+          >
+            {config.options?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <select
+            value={config.value as string}
+            onChange={(e) => onChange?.(e.target.value)}
+            className={twMerge(
+              'block w-full rounded-md border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:text-white sm:text-sm',
+              className
+            )}
+            disabled={readOnly}
           >
             <option value="">Select an option</option>
             {config.options?.map((option) => (
@@ -161,49 +194,58 @@ export function Field({ config, mode, onChange, onConfigChange, className }: Fie
               </option>
             ))}
           </select>
-        </div>
-      );
+        );
+      default:
+        return (
+          <Input
+            type={inputType}
+            value={config.value || ''}
+            onChange={(e) => onChange?.(e.target.value)}
+            placeholder={config.placeholder}
+            className={className}
+            disabled={readOnly}
+          />
+        );
     }
-
-    return (
-      <Input
-        type={inputType}
-        label={config.label}
-        value={config.value as string || ''}
-        onChange={(e) => onChange?.(e.target.value)}
-        required={config.required}
-        placeholder={config.placeholder}
-        disabled={mode === 'display'}
-      />
-    );
   };
 
   return (
-    <div
-      className={twMerge(
-        'rounded-lg border border-secondary-200 bg-white p-4 shadow-sm',
-        'dark:border-secondary-700 dark:bg-secondary-800',
-        mode === 'builder' && 'cursor-move',
-        className
-      )}
-    >
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        {isEditing ? (
+          <Input
+            type="text"
+            value={localConfig.label}
+            onChange={(e) => handleUpdate({ label: e.target.value })}
+            className="font-medium"
+            onBlur={() => setIsEditing(false)}
+            onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
+            autoFocus
+          />
+        ) : (
+          <label
+            className="block text-sm font-medium text-secondary-900 dark:text-white"
+            onClick={() => !readOnly && setIsEditing(true)}
+          >
+            {localConfig.label}
+            {localConfig.required && (
+              <span className="ml-1 text-red-500">*</span>
+            )}
+          </label>
+        )}
+      </div>
+
       {renderField()}
+
+      {!readOnly && renderFieldControls()}
+
       {config.helpText && (
         <p className="mt-1 text-sm text-secondary-500 dark:text-secondary-400">
           {config.helpText}
         </p>
       )}
-      {mode === 'builder' && renderBuilderControls()}
     </div>
   );
 }
 
-export type FieldType =
-  | 'text'
-  | 'number'
-  | 'email'
-  | 'select'
-  | 'multiselect'
-  | 'date'
-  | 'time'
-  | 'voice'; 
+export type { FieldType };

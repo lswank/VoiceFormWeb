@@ -117,30 +117,30 @@ function DraggableFieldButton({ fieldType }: DraggableFieldButtonProps) {
 }
 
 interface FieldPaletteProps {
-  onFieldSelect: (type: FieldType) => void;
+  onSelect: (type: FieldType) => void;
 }
 
-export function FieldPalette({ onFieldSelect }: FieldPaletteProps) {
+export function FieldPalette({ onSelect }: FieldPaletteProps) {
   return (
-    <div className="divide-y divide-secondary-200 rounded-lg border border-secondary-200 bg-white dark:divide-secondary-700 dark:border-secondary-700 dark:bg-secondary-800">
-      <div className="px-4 py-3">
-        <h3 className="text-sm font-medium text-secondary-900 dark:text-white">
-          Form Fields
-        </h3>
-        <p className="mt-1 text-sm text-secondary-500 dark:text-secondary-400">
-          Drag and drop fields onto the canvas
-        </p>
-      </div>
-      <div className="p-4">
-        <div className="grid grid-cols-1 gap-3">
-          {fieldTypes.map((fieldType) => (
-            <DraggableFieldButton
-              key={fieldType.type}
-              fieldType={fieldType}
-            />
-          ))}
-        </div>
-      </div>
+    <div className="grid grid-cols-2 gap-4">
+      {fieldTypes.map((fieldType) => (
+        <button
+          key={fieldType.type}
+          type="button"
+          onClick={() => onSelect(fieldType.type)}
+          className="flex items-start gap-3 rounded-lg border border-secondary-200 bg-white p-4 text-left hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
+        >
+          <fieldType.icon className="h-6 w-6 text-secondary-400 dark:text-secondary-500" />
+          <div>
+            <p className="text-sm font-medium text-secondary-900 dark:text-white">
+              {fieldType.label}
+            </p>
+            <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
+              {fieldType.description}
+            </p>
+          </div>
+        </button>
+      ))}
     </div>
   );
 } 

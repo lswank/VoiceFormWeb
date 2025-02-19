@@ -1,15 +1,21 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Field, type FieldConfig } from './Field';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 interface SortableFieldProps {
   field: FieldConfig;
-  mode: 'builder' | 'display' | 'edit';
-  onConfigChange: (updates: Partial<FieldConfig>) => void;
-  onRemove: () => void;
+  onUpdate: (fieldId: string, updates: Partial<FieldConfig>) => void;
+  onRemove: (fieldId: string) => void;
+  readOnly?: boolean;
 }
 
-export function SortableField({ field, mode, onConfigChange, onRemove }: SortableFieldProps) {
+export function SortableField({
+  field,
+  onUpdate,
+  onRemove,
+  readOnly = false,
+}: SortableFieldProps) {
   const {
     attributes,
     listeners,
@@ -19,10 +25,7 @@ export function SortableField({ field, mode, onConfigChange, onRemove }: Sortabl
     isDragging,
   } = useSortable({
     id: field.id,
-    data: {
-      type: 'field',
-      field,
-    },
+    disabled: readOnly,
   });
 
   const style = {
@@ -34,29 +37,26 @@ export function SortableField({ field, mode, onConfigChange, onRemove }: Sortabl
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group ${isDragging ? 'opacity-50' : ''}`}
-      {...attributes}
+      className={`relative rounded-lg border border-secondary-200 bg-white p-4 dark:border-secondary-700 dark:bg-secondary-800 ${
+        isDragging ? 'opacity-50' : ''
+      } ${!readOnly ? 'group cursor-move' : ''}`}
+      {...(!readOnly ? attributes : {})}
+      {...(!readOnly ? listeners : {})}
     >
       <Field
         config={field}
-        mode={mode}
-        onConfigChange={onConfigChange}
-        className="cursor-move"
+        onChange={(value) => onUpdate(field.id, { value })}
+        readOnly={readOnly}
       />
-      {mode === 'builder' && (
+      
+      {!readOnly && (
         <button
           type="button"
-          onClick={onRemove}
-          className="absolute -right-12 top-2 hidden rounded-md p-2 text-secondary-400 hover:text-secondary-500 group-hover:block dark:text-secondary-500 dark:hover:text-secondary-400"
+          onClick={() => onRemove(field.id)}
+          className="absolute -right-2 -top-2 hidden rounded-full bg-white p-1 text-secondary-400 shadow-sm hover:bg-secondary-50 hover:text-secondary-500 group-hover:block dark:bg-secondary-700 dark:text-secondary-500 dark:hover:bg-secondary-600 dark:hover:text-secondary-400"
         >
-          Remove
+          <TrashIcon className="h-4 w-4" />
         </button>
-      )}
-      {mode === 'builder' && (
-        <div
-          className="absolute inset-y-0 left-0 w-8 cursor-move"
-          {...listeners}
-        />
       )}
     </div>
   );
