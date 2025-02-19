@@ -15,6 +15,7 @@ import { Billing } from './pages/Billing';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { Toaster } from 'react-hot-toast';
 
 // Initialize Stripe with test key
 const stripePromise = loadStripe('pk_test_51O8qcXKTYtqPO0Uh6Hn5JbqI3pBBUWJqhxkZWxYUwFXVKNGaAHgHQVZHDHoGMOVqJwRGBP5gKEiPZGPR7lXUNkQV00CpzGRKEt');
@@ -98,6 +99,7 @@ function App() {
     <AuthProvider>
       <Elements stripe={stripePromise}>
         <AppRoutes />
+        <Toaster position="top-right" />
       </Elements>
     </AuthProvider>
   );

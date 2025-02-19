@@ -19,6 +19,8 @@ import {
   LinkIcon,
   EnvelopeIcon,
   GlobeAltIcon,
+  UsersIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { Button } from '../components/Button';
@@ -28,6 +30,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { Switch, Menu, Transition } from '@headlessui/react';
 import { twMerge } from 'tailwind-merge';
+import toast from 'react-hot-toast';
 
 interface Collection {
   id: string;
@@ -150,15 +153,41 @@ function FormCard({ form, collection }: { form: Form, collection?: Collection })
   );
 }
 
-function ShareDropdown({ form }: { form: Form }) {
+export function ShareDropdown({ form }: { form: Form }) {
   const shareUrl = `${window.location.origin}/respond/${form.id}`;
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   
   const handleCopyLink = async () => {
+    if (isAnimating) return; // Prevent multiple clicks during animation
+    
     try {
+      setIsAnimating(true);
+      setIsShaking(true);
       await navigator.clipboard.writeText(shareUrl);
-      // TODO: Show success toast
+      
+      // Stop shaking after 200ms
+      setTimeout(() => setIsShaking(false), 200);
+      
+      // Show success state after shake
+      setCopySuccess(true);
+      
+      // Close menu and reset state after animation
+      setTimeout(() => {
+        setIsOpen(false);
+        setCopySuccess(false);
+        setIsAnimating(false);
+      }, 2200); // Total animation duration
     } catch (err) {
       console.error('Failed to copy link:', err);
+      setIsAnimating(false);
+      toast.error('Failed to copy link', {
+        duration: 2000,
+        position: 'bottom-right',
+        className: 'dark:bg-secondary-800 dark:text-white',
+      });
     }
   };
 
@@ -166,6 +195,7 @@ function ShareDropdown({ form }: { form: Form }) {
     const subject = encodeURIComponent(form.title);
     const body = encodeURIComponent(`Please fill out this form: ${shareUrl}`);
     window.open(`mailto:?subject=${subject}&body=${body}`);
+    setIsOpen(false);
   };
 
   const handleSocialShare = (platform: 'twitter' | 'linkedin' | 'facebook') => {
@@ -179,17 +209,20 @@ function ShareDropdown({ form }: { form: Form }) {
     };
     
     window.open(shareUrls[platform], '_blank');
+    setIsOpen(false);
   };
 
   return (
     <Menu as="div" className="relative">
       <Menu.Button
         className="inline-flex items-center gap-x-1 rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-secondary-900 shadow-sm ring-1 ring-inset ring-secondary-300 hover:bg-secondary-50 dark:bg-secondary-800 dark:text-white dark:ring-secondary-700 dark:hover:bg-secondary-700"
+        onClick={() => setIsOpen(!isOpen)}
       >
         <ShareIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
         Share
       </Menu.Button>
       <Transition
+        show={isOpen}
         as={Fragment}
         enter="transition ease-out duration-100"
         enterFrom="transform opacity-0 scale-95"
@@ -198,20 +231,67 @@ function ShareDropdown({ form }: { form: Form }) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-secondary-800 dark:ring-secondary-700">
+        <Menu.Items
+          static
+          className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-secondary-800 dark:ring-secondary-700"
+        >
           <Menu.Item>
             {({ active }: { active: boolean }) => (
               <button
                 onClick={handleCopyLink}
                 className={twMerge(
-                  'flex w-full items-center px-4 py-2 text-sm',
+                  'flex w-full items-center px-4 py-2 text-sm transition-all duration-200',
                   active
                     ? 'bg-secondary-100 text-secondary-900 dark:bg-secondary-700 dark:text-white'
-                    : 'text-secondary-700 dark:text-secondary-300'
+                    : 'text-secondary-700 dark:text-secondary-300',
+                  copySuccess && 'bg-green-100 dark:bg-green-900/30',
+                  'relative overflow-hidden',
+                  isShaking && 'animate-shake'
                 )}
               >
-                <LinkIcon className="mr-3 h-5 w-5 text-secondary-400" />
-                Copy Link
+                {/* Ripple effect background */}
+                {copySuccess && (
+                  <div 
+                    className="absolute inset-0 z-0"
+                    style={{
+                      background: `radial-gradient(circle at center, 
+                        ${copySuccess ? 'var(--tw-text-opacity-green-500) 0%, transparent 70%' : 'transparent 0%'})`,
+                      opacity: copySuccess ? 1 : 0,
+                      transition: 'opacity 300ms ease-out',
+                    }}
+                  />
+                )}
+                
+                {/* Content container */}
+                <div className="relative z-10 flex w-full items-center">
+                  {/* Link icon with rotation */}
+                  <div className={twMerge(
+                    "transition-all duration-300",
+                    copySuccess && "-rotate-180 scale-0"
+                  )}>
+                    <LinkIcon className="mr-3 h-5 w-5 text-secondary-400" />
+                  </div>
+                  
+                  {/* Text with enhanced movement */}
+                  <span className={twMerge(
+                    "transition-all duration-300",
+                    copySuccess && "translate-x-[-24px]"
+                  )}>
+                    Copy Link
+                  </span>
+                  
+                  {/* Success checkmark with bounce */}
+                  <div 
+                    className={twMerge(
+                      "absolute right-4 transition-all duration-300",
+                      copySuccess 
+                        ? "translate-x-0 scale-100 animate-bounce-once" 
+                        : "translate-x-4 scale-0"
+                    )}
+                  >
+                    <CheckIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
+                  </div>
+                </div>
               </button>
             )}
           </Menu.Item>
@@ -313,42 +393,51 @@ function FormListItem({ form, collection }: { form: Form, collection?: Collectio
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`group flex items-center justify-between rounded-lg border border-secondary-200 bg-white p-4 shadow-sm transition-all hover:shadow dark:border-secondary-700 dark:bg-secondary-800 ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-    >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="mr-3 cursor-move rounded p-1 text-secondary-400 opacity-0 hover:bg-secondary-100 group-hover:opacity-100 dark:text-secondary-500 dark:hover:bg-secondary-700"
-      >
-        <Bars3Icon className="h-5 w-5" />
-      </div>
-
-      <Link to={`/forms/${form.id}`} className="flex flex-1 items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div>
-            <CollectionBadge collection={collection} />
-            <h3 className="mt-1 text-sm font-medium text-secondary-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+    <div className="flex items-center justify-between rounded-lg border border-secondary-200 p-4 dark:border-secondary-700">
+      <div className="flex items-center space-x-4">
+        <div className="flex-shrink-0">
+          {collection?.icon && (
+            <collection.icon
+              className="h-6 w-6"
+              style={{ color: collection.color }}
+            />
+          )}
+        </div>
+        <div>
+          <div className="flex items-center gap-x-2">
+            <h3 className="text-sm font-medium text-secondary-900 dark:text-white">
               {form.title}
             </h3>
+            {form.scope === 'team' && (
+              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-200">
+                <UsersIcon className="-ml-0.5 mr-1.5 h-3 w-3" />
+                Team
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-secondary-500 dark:text-secondary-400">
+            {form.description || 'No description'}
+          </p>
+          <div className="mt-2 flex items-center gap-x-2 text-xs text-secondary-500 dark:text-secondary-400">
+            <span>
+              {form.responseCount} {form.responseCount === 1 ? 'response' : 'responses'}
+            </span>
+            <span>•</span>
+            <span>
+              Last updated {new Date(form.updatedAt).toLocaleDateString()}
+            </span>
+            {form.scope === 'team' && form.permissions && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-x-1">
+                  <UsersIcon className="h-3 w-3" />
+                  {form.permissions.length} {form.permissions.length === 1 ? 'member' : 'members'}
+                </span>
+              </>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-x-6">
-          <div className="flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
-            <CalendarIcon className="h-5 w-5" />
-            <span>Updated {new Date(form.updatedAt).toLocaleDateString()}</span>
-          </div>
-          <div className="flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
-            <ChatBubbleLeftIcon className="h-5 w-5" />
-            <span>{form.responseCount} responses</span>
-          </div>
-        </div>
-      </Link>
+      </div>
 
       <div className="ml-4 flex items-center gap-x-4">
         <Switch

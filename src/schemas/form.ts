@@ -33,6 +33,20 @@ export const fieldSchema = z.object({
 // Form status enum
 export const formStatusSchema = z.enum(['draft', 'published', 'archived']);
 
+// Form scope enum
+export const formScopeSchema = z.enum(['personal', 'team']);
+
+// Form permission role enum
+export const formPermissionRoleSchema = z.enum(['owner', 'editor', 'viewer']);
+
+// Form permission schema
+export const formPermissionSchema = z.object({
+  userId: z.string(),
+  role: formPermissionRoleSchema,
+  addedAt: z.string().datetime(),
+  addedBy: z.string(),
+});
+
 // Form schema
 export const formSchema = z.object({
   id: z.string(),
@@ -45,6 +59,8 @@ export const formSchema = z.object({
   status: formStatusSchema,
   responseCount: z.number().int().min(0),
   starred: z.boolean().optional(),
+  scope: formScopeSchema,
+  permissions: z.array(formPermissionSchema).optional(),
 });
 
 // Form response schema
@@ -81,4 +97,7 @@ export type Field = z.infer<typeof fieldSchema>;
 export type FormStatus = z.infer<typeof formStatusSchema>;
 export type Form = z.infer<typeof formSchema>;
 export type FormResponse = z.infer<typeof formResponseSchema>;
-export type FormAnalytics = z.infer<typeof formAnalyticsSchema>; 
+export type FormAnalytics = z.infer<typeof formAnalyticsSchema>;
+export type FormScope = z.infer<typeof formScopeSchema>;
+export type FormPermissionRole = z.infer<typeof formPermissionRoleSchema>;
+export type FormPermission = z.infer<typeof formPermissionSchema>; 

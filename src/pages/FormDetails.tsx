@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FormBuilder } from '../components/form/FormBuilder';
 import { ResponsesTab } from '../components/form/ResponsesTab';
 import { AnalyticsTab } from '../components/analytics/AnalyticsTab';
+import { FormPermissions } from '../components/form/FormPermissions';
 import { useForm } from '../hooks/useForm';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -16,9 +17,11 @@ import {
   ArrowPathIcon,
   ArchiveBoxIcon,
   DocumentCheckIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import { ShareDropdown } from './Forms';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -327,6 +330,16 @@ export function FormDetails() {
       content: <AnalyticsTab form={form} analytics={analytics} />,
       show: analytics.totalResponses > 0,
     },
+    {
+      name: 'Permissions',
+      icon: UsersIcon,
+      content: (
+        <div className="max-w-2xl">
+          <FormPermissions form={form} onUpdate={mutate} />
+        </div>
+      ),
+      show: true,
+    },
   ].filter(tab => tab.show);
 
   return (
@@ -369,6 +382,7 @@ export function FormDetails() {
           )}
           {form.status === 'published' && (
             <>
+              <ShareDropdown form={form} />
               <Button
                 variant="secondary"
                 onClick={handleCloneForm}

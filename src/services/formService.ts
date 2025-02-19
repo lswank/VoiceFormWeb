@@ -1,5 +1,12 @@
 import { formSchema, formResponseSchema, formAnalyticsSchema } from '../schemas/form';
-import type { Form, FormResponse, FormAnalytics } from '../schemas/form';
+import type { 
+  Form, 
+  FormResponse, 
+  FormAnalytics,
+  FormPermission,
+  FormPermissionRole,
+  FormScope 
+} from '../schemas/form';
 import { config } from '../config';
 import { createRequestValidator, createResponseValidator } from '../utils/validation';
 import { z } from 'zod';
@@ -95,6 +102,7 @@ const mockForms: Form[] = [
     userId: 'user-1',
     status: 'published',
     responseCount: 5,
+    scope: 'personal' as const,
   },
   {
     id: '2',
@@ -137,6 +145,15 @@ const mockForms: Form[] = [
     userId: 'user-1',
     status: 'draft',
     responseCount: 0,
+    scope: 'team' as const,
+    permissions: [
+      {
+        userId: 'user-1',
+        role: 'owner' as const,
+        addedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        addedBy: 'user-1',
+      }
+    ],
   },
 ];
 
@@ -243,6 +260,15 @@ class FormService {
         id: `form-${Date.now()}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        scope: form.scope || 'personal', // Default to personal scope
+        permissions: form.scope === 'team' ? [
+          {
+            userId: form.userId,
+            role: 'owner',
+            addedAt: new Date().toISOString(),
+            addedBy: form.userId,
+          }
+        ] : undefined,
       };
       return validateForm(newForm);
     }
@@ -259,16 +285,24 @@ class FormService {
   async cloneForm(id: string): Promise<Form> {
     if (config.environment === 'local-ui') {
       const form = await this.getForm(id);
-      const clonedForm: Form = {
+      const newForm: Form = {
         ...form,
-        id: `cloned-${Date.now()}`,
+        id: `form-${Date.now()}`,
         title: `${form.title} (Copy)`,
-        status: 'draft',
-        responseCount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        responseCount: 0,
+        scope: form.scope,
+        permissions: form.scope === 'team' ? [
+          {
+            userId: form.userId,
+            role: 'owner',
+            addedAt: new Date().toISOString(),
+            addedBy: form.userId,
+          }
+        ] : undefined,
       };
-      return validateForm(clonedForm);
+      return validateForm(newForm);
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${id}/clone`, {
@@ -276,6 +310,84 @@ class FormService {
     });
     const data = await response.json();
     return validateForm(data);
+  }
+
+  async updateFormPermissions(formId: string, permissions: FormPermission[]): Promise<Form> {
+    if (config.environment === 'local-ui') {
+      const form = await this.getForm(formId);
+      const updatedForm = { 
+        ...form, 
+        permissions,
+        updatedAt: new Date().toISOString() 
+      };
+      return validateForm(updatedForm);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${formId}/permissions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permissions }),
+    });
+    const data = await response.json();
+    return validateForm(data);
+  }
+
+  async addFormPermission(formId: string, permission: Omit<FormPermission, 'addedAt'>): Promise<Form> {
+    if (config.environment === 'local-ui') {
+      const form = await this.getForm(formId);
+      const newPermission = {
+        ...permission,
+        addedAt: new Date().toISOString(),
+      };
+      const updatedForm = {
+        ...form,
+        permissions: [...(form.permissions || []), newPermission],
+        updatedAt: new Date().toISOString(),
+      };
+      return validateForm(updatedForm);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${formId}/permissions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(permission),
+    });
+    const data = await response.json();
+    return validateForm(data);
+  }
+
+  async removeFormPermission(formId: string, userId: string): Promise<Form> {
+    if (config.environment === 'local-ui') {
+      const form = await this.getForm(formId);
+      const updatedForm = {
+        ...form,
+        permissions: form.permissions?.filter(p => p.userId !== userId) || [],
+        updatedAt: new Date().toISOString(),
+      };
+      return validateForm(updatedForm);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${formId}/permissions/${userId}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    return validateForm(data);
+  }
+
+  async getAccessibleForms(userId: string): Promise<Form[]> {
+    if (config.environment === 'local-ui') {
+      return z.array(formSchema).parse(
+        mockForms.filter(form => 
+          form.userId === userId || // Creator
+          form.scope === 'personal' || // Personal forms
+          form.permissions?.some(p => p.userId === userId) // Has permission
+        )
+      );
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/accessible/${userId}`);
+    const data = await response.json();
+    return z.array(formSchema).parse(data);
   }
 }
 
@@ -286,54 +398,33 @@ type ImportMethod = 'pdf' | 'image' | 'url';
 class FormImportService {
   async extractFormFields(file: File | string, method: ImportMethod): Promise<Form> {
     if (config.environment === 'local-ui') {
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock extracted form
-      const title = typeof file === 'string' 
-        ? new URL(file).pathname.split('/').pop()?.replace(/\.[^/.]+$/, '') || 'Imported Form'
-        : file.name.replace(/\.[^/.]+$/, '');
-
-      return {
-        id: 'new',
-        title,
-        description: `Form extracted from ${method.toUpperCase()}`,
+      // Mock form extraction
+      const mockExtractedForm: Form = {
+        id: `form-${Date.now()}`,
+        title: 'Extracted Form',
+        description: 'Form extracted from uploaded file',
         fields: [
           {
             id: 'name',
             type: 'text',
             label: 'Full Name',
             required: true,
-            placeholder: 'John Doe',
           },
           {
             id: 'email',
             type: 'email',
             label: 'Email Address',
             required: true,
-            placeholder: 'john@example.com',
-          },
-          {
-            id: 'phone',
-            type: 'phone',
-            label: 'Phone Number',
-            required: false,
-            placeholder: '+1 (555) 123-4567',
-          },
-          {
-            id: 'comments',
-            type: 'textarea',
-            label: 'Additional Comments',
-            required: false,
-            placeholder: 'Any additional information...',
           },
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        userId: 'preview',
+        userId: 'user-1',
         status: 'draft',
         responseCount: 0,
+        scope: 'personal' as const,
       };
+      return validateForm(mockExtractedForm);
     }
 
     // In non-local environments, send to backend
