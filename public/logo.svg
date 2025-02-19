@@ -1,0 +1,4 @@
+<svg width="200" height="50" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 25C10 16.7157 16.7157 10 25 10H175C183.284 10 190 16.7157 190 25C190 33.2843 183.284 40 175 40H25C16.7157 40 10 33.2843 10 25Z" fill="#4F46E5"/>
+  <text x="100" y="32" font-family="Arial" font-size="18" fill="white" text-anchor="middle">VoiceForm</text>
+</svg> 
