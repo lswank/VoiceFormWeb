@@ -8,7 +8,7 @@ import {
 import { FormBuilder as FormBuilderComponent } from '../components/form/FormBuilder';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { type Form } from '../types/form';
+import type { Form } from '../schemas/form';
 import { RespondentInterface } from './RespondentInterface';
 import { formService } from '../services/formService';
 

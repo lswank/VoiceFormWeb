@@ -1,4 +1,4 @@
-import { Form, FormAnalytics } from '../../types/form';
+import { Form, FormAnalytics } from '../../schemas/form';
 import { ResponseTimelineChart } from './ResponseTimelineChart';
 import { FieldCompletionChart } from './FieldCompletionChart';
 

@@ -1,4 +1,4 @@
-import { Form, FormResponse } from './formService';
+import type { Form, FormResponse } from '../schemas/form';
 import { config } from '../config';
 
 export interface EmailTemplate {

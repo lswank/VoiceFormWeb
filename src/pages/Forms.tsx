@@ -1,7 +1,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { formService } from '../services/formService';
-import { type Form, type FormStatus } from '../types/form';
+import type { Form, FormStatus } from '../schemas/form';
 import { 
   PlusIcon, 
   CalendarIcon, 
@@ -623,7 +623,7 @@ export function Forms() {
   const filteredForms = forms.filter(form => {
     if (selectedCollection === 'all') return true;
     if (selectedCollection === 'starred') return form.starred;
-    if (selectedCollection === 'published') return form.status === 'active';
+    if (selectedCollection === 'published') return form.status === 'published';
     if (selectedCollection === 'drafts') return form.status === 'draft';
     return form.collectionId === selectedCollection;
   });

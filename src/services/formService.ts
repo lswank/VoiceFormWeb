@@ -1,5 +1,14 @@
-import { Form, FormResponse, FormAnalytics } from '../types/form';
+import { formSchema, formResponseSchema, formAnalyticsSchema } from '../schemas/form';
+import type { Form, FormResponse, FormAnalytics } from '../schemas/form';
 import { config } from '../config';
+import { createRequestValidator, createResponseValidator } from '../utils/validation';
+import { z } from 'zod';
+
+// Validators
+const validateForm = createResponseValidator(formSchema);
+const validateFormResponse = createResponseValidator(formResponseSchema);
+const validateFormAnalytics = createResponseValidator(formAnalyticsSchema);
+const validateFormSubmission = createRequestValidator(formResponseSchema.pick({ data: true }));
 
 export type { Form, FormResponse, FormAnalytics };
 
@@ -139,81 +148,134 @@ const mockResponses: Record<string, FormResponse[]> = mockForms.reduce((acc, for
 
 class FormService {
   async getForm(id: string): Promise<Form> {
-    const form = mockForms.find((f) => f.id === id);
-    if (!form) {
-      throw new Error(`Form not found: ${id}`);
+    if (config.environment === 'local-ui') {
+      const form = mockForms.find(f => f.id === id);
+      if (!form) {
+        throw new Error(`Form not found: ${id}`);
+      }
+      return validateForm(form);
     }
-    return Promise.resolve(form);
+
+    const response = await fetch(`${config.apiUrl}/forms/${id}`);
+    const data = await response.json();
+    return validateForm(data);
   }
 
   async getForms(): Promise<Form[]> {
-    return Promise.resolve(mockForms);
+    if (config.environment === 'local-ui') {
+      return z.array(formSchema).parse(mockForms);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms`);
+    const data = await response.json();
+    return z.array(formSchema).parse(data);
   }
 
   async getFormResponses(formId: string): Promise<FormResponse[]> {
-    return Promise.resolve(mockResponses[formId] || []);
+    if (config.environment === 'local-ui') {
+      return z.array(formResponseSchema).parse(mockResponses[formId] || []);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${formId}/responses`);
+    const data = await response.json();
+    return z.array(formResponseSchema).parse(data);
   }
 
   async getFormAnalytics(formId: string): Promise<FormAnalytics> {
-    return Promise.resolve({
-      totalResponses: 5,
-      averageCompletionTime: 180,
-      completionRate: 0.85,
-      responseTimeline: Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
-        count: Math.floor(Math.random() * 10),
-      })),
-      fieldCompletion: [
-        { fieldId: 'name', completionRate: 0.95 },
-        { fieldId: 'email', completionRate: 0.9 },
-        { fieldId: 'rating', completionRate: 0.85 },
-        { fieldId: 'feedback', completionRate: 0.75 },
-      ],
-    });
+    if (config.environment === 'local-ui') {
+      const form = await this.getForm(formId);
+      const analytics: FormAnalytics = {
+        totalResponses: form.responseCount,
+        averageCompletionTime: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
+        completionRate: Math.random() * 0.3 + 0.7, // 70-100%
+        responseTimeline: Array.from({ length: 30 }, (_, i) => ({
+          date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          count: Math.floor(Math.random() * 10),
+        })),
+        fieldCompletion: form.fields.map(field => ({
+          fieldId: field.id,
+          completionRate: Math.random() * 0.2 + 0.8, // 80-100%
+        })),
+      };
+      return validateFormAnalytics(analytics);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${formId}/analytics`);
+    const data = await response.json();
+    return validateFormAnalytics(data);
   }
 
   async submitFormResponse(formId: string, data: Record<string, string>): Promise<void> {
-    console.log('Mock form submission:', { formId, data });
-    return Promise.resolve();
+    validateFormSubmission({ data });
+    
+    if (config.environment === 'local-ui') {
+      console.log('Mock form submission:', { formId, data });
+      return;
+    }
+
+    await fetch(`${config.apiUrl}/forms/${formId}/responses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data }),
+    });
   }
 
   async updateForm(id: string, updates: Partial<Form>): Promise<Form> {
-    const form = await this.getForm(id);
-    const updatedForm = { ...form, ...updates, updatedAt: new Date().toISOString() };
-    
-    // In local-ui mode, just return the updated form
-    // In production, this would make an API call
-    return Promise.resolve(updatedForm);
+    if (config.environment === 'local-ui') {
+      const form = await this.getForm(id);
+      const updatedForm = { ...form, ...updates, updatedAt: new Date().toISOString() };
+      return validateForm(updatedForm);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const data = await response.json();
+    return validateForm(data);
   }
 
   async createForm(form: Omit<Form, 'id'>): Promise<Form> {
-    const newForm: Form = {
-      ...form,
-      id: `form-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    // In local-ui mode, just return the new form
-    // In production, this would make an API call
-    return Promise.resolve(newForm);
+    if (config.environment === 'local-ui') {
+      const newForm: Form = {
+        ...form,
+        id: `form-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return validateForm(newForm);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+    const data = await response.json();
+    return validateForm(data);
   }
 
   async cloneForm(id: string): Promise<Form> {
-    const form = await this.getForm(id);
-    const clonedForm: Form = {
-      ...form,
-      id: `cloned-${Date.now()}`,
-      title: `${form.title} (Copy)`,
-      status: 'draft',
-      responseCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    // In local-ui mode, just return the cloned form
-    // In production, this would make an API call
-    return Promise.resolve(clonedForm);
+    if (config.environment === 'local-ui') {
+      const form = await this.getForm(id);
+      const clonedForm: Form = {
+        ...form,
+        id: `cloned-${Date.now()}`,
+        title: `${form.title} (Copy)`,
+        status: 'draft',
+        responseCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return validateForm(clonedForm);
+    }
+
+    const response = await fetch(`${config.apiUrl}/forms/${id}/clone`, {
+      method: 'POST',
+    });
+    const data = await response.json();
+    return validateForm(data);
   }
 }
 

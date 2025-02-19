@@ -1,5 +1,5 @@
-import { type Form, type Field, type FieldOption, type FieldType, type FormStatus } from '../types/form';
-import { type FormResponse, type FormAnalytics } from '../services/formService';
+import type { Form, Field, FieldOption, FieldType, FormStatus } from '../schemas/form';
+import type { FormResponse, FormAnalytics } from '../schemas/form';
 
 // Helper functions
 function generateId(): string {

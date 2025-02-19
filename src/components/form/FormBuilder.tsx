@@ -12,7 +12,7 @@ import { type FieldConfig, type FieldType } from './Field';
 import { FieldPalette } from './FieldPalette';
 import { Button } from '../Button';
 import { Input } from '../Input';
-import { type Form } from '../../types/form';
+import type { Form } from '../../schemas/form';
 import { SortableField } from './SortableField';
 
 interface FormConfig {

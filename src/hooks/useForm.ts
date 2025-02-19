@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Form, FormAnalytics } from '../types/form';
+import type { Form, FormAnalytics } from '../schemas/form';
 import { formService } from '../services/formService';
+import { ValidationError } from '../utils/validation';
 
 export function useForm(formId: string | undefined) {
   const [form, setForm] = useState<Form | null>(null);
@@ -26,8 +27,13 @@ export function useForm(formId: string | undefined) {
         setAnalytics(analyticsData);
         setError(null);
       } catch (err) {
-        setError('Failed to load form data. Please try again later.');
-        console.error('Error fetching form data:', err);
+        if (err instanceof ValidationError) {
+          setError('Invalid data received from server. Please contact support.');
+          console.error('Validation error:', err.errors);
+        } else {
+          setError('Failed to load form data. Please try again later.');
+          console.error('Error fetching form data:', err);
+        }
       } finally {
         setIsLoading(false);
       }

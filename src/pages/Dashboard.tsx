@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formService } from '../services/formService';
-import { Form, FormAnalytics } from '../types/form';
+import type { Form, FormAnalytics } from '../schemas/form';
 import { CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 interface FormWithAnalytics {

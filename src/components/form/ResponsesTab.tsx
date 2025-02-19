@@ -1,4 +1,3 @@
-import { Form, FormResponse } from '../../types/form';
 import { Popover, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { 
@@ -8,6 +7,7 @@ import {
   CodeBracketIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
+import type { Form, FormResponse } from '../../schemas/form';
 
 interface ResponsesTabProps {
   form: Form;

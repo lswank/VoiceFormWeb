@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Input } from '../Input';
 import { Switch } from '@headlessui/react';
 import { twMerge } from 'tailwind-merge';
-import { FieldType, type Field as FormField } from '../../types/form';
+import type { FieldType, Field as FormField } from '../../schemas/form';
 
 // HTML input types we support
 type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'select';
