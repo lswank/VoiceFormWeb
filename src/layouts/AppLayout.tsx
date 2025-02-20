@@ -14,6 +14,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { Button } from '../components/Button';
 import { useForm } from '../hooks/useForm';
 import { Logo } from '../components/Logo';
+import { useTheme } from '../contexts/ThemeContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
@@ -35,6 +36,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const { id } = useParams<{ id?: string }>();
   const { form, isLoading } = useForm(id);
+  const { theme } = useTheme();
   
   // Generate breadcrumb items based on current path
   const getBreadcrumbItems = () => {
@@ -123,8 +125,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 shadow">
+    <div className="min-h-screen bg-gradient-mesh bg-white dark:bg-secondary-900">
+      <div className="bg-white/80 backdrop-blur-sm dark:bg-secondary-800/80 shadow">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex">
@@ -138,35 +140,25 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-all ${
                       location.pathname.startsWith(item.href)
-                        ? 'border-b-2 border-indigo-500 text-gray-900 dark:text-white'
-                        : 'text-gray-500 hover:border-b-2 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                        ? 'border-b-2 border-primary-500 text-secondary-900 dark:border-primary-400 dark:text-white'
+                        : 'text-secondary-500 hover:border-b-2 hover:border-secondary-300 hover:text-secondary-700 dark:text-secondary-400 dark:hover:border-secondary-600 dark:hover:text-secondary-300'
                     }`}
                   >
-                    <item.icon className="mr-2 h-5 w-5" />
+                    <item.icon className="mr-2 h-5 w-5 transition-colors group-hover:text-primary-500 dark:group-hover:text-primary-400" />
                     {item.name}
                   </Link>
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-x-4">
-              <Link to="/forms/new">
-                <Button>
-                  <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                  New Form
-                </Button>
-              </Link>
+            <div className="flex items-center space-x-4">
               <ThemeToggle />
-              
-              {/* Profile dropdown */}
-              <Menu as="div" className="relative ml-3">
-                <div>
-                  <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-secondary-800">
-                    <span className="sr-only">Open user menu</span>
-                    <UserCircleIcon className="h-8 w-8 text-secondary-400" />
-                  </Menu.Button>
-                </div>
+              <Menu as="div" className="relative">
+                <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-secondary-800 dark:focus:ring-primary-400 dark:focus:ring-offset-secondary-900">
+                  <span className="sr-only">Open user menu</span>
+                  <UserCircleIcon className="h-8 w-8 text-secondary-400 hover:text-secondary-500 dark:text-secondary-500 dark:hover:text-secondary-400" />
+                </Menu.Button>
                 <Transition
                   as={Fragment}
                   enter="transition ease-out duration-200"
@@ -176,13 +168,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-secondary-800 dark:ring-secondary-700">
+                  <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-secondary-800 dark:ring-secondary-700">
                     {userNavigation.map((item) => (
                       <Menu.Item key={item.name}>
                         {({ active }) => (
                           <Link
                             to={item.href}
-                            className={`block px-4 py-2 text-sm ${
+                            className={`block px-4 py-2 text-sm transition-colors ${
                               active
                                 ? 'bg-secondary-100 text-secondary-900 dark:bg-secondary-700 dark:text-white'
                                 : 'text-secondary-700 dark:text-secondary-300'
@@ -202,7 +194,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       <main className="py-10">
-        <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {renderBreadcrumbs()}
+          <div className="mt-4">{children}</div>
+        </div>
       </main>
     </div>
   );

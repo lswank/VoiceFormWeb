@@ -11,6 +11,7 @@ import {
   MicrophoneIcon,
 } from '@heroicons/react/24/outline';
 import { twMerge } from 'tailwind-merge';
+import { Hoverable3D } from '../Hoverable3D';
 
 interface FieldTypeOption {
   type: FieldType;
@@ -124,22 +125,24 @@ export function FieldPalette({ onSelect }: FieldPaletteProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       {fieldTypes.map((fieldType) => (
-        <button
+        <Hoverable3D
           key={fieldType.type}
+          as="button"
           type="button"
           onClick={() => onSelect(fieldType.type)}
-          className="flex items-start gap-3 rounded-lg border border-secondary-200 bg-white p-4 text-left hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
+          intensity="medium"
+          className="flex items-start gap-3 rounded-lg border border-secondary-200 bg-white p-4 text-left transition-all hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
         >
-          <fieldType.icon className="h-6 w-6 text-secondary-400 dark:text-secondary-500" />
+          <fieldType.icon className="h-6 w-6 text-secondary-400 transition-colors group-hover:text-primary-500 dark:text-secondary-500 dark:group-hover:text-primary-400" />
           <div>
-            <p className="text-sm font-medium text-secondary-900 dark:text-white">
+            <p className="text-sm font-medium text-secondary-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
               {fieldType.label}
             </p>
             <p className="mt-1 text-xs text-secondary-500 dark:text-secondary-400">
               {fieldType.description}
             </p>
           </div>
-        </button>
+        </Hoverable3D>
       ))}
     </div>
   );

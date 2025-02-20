@@ -22,6 +22,28 @@
   .theme-transition {
     @apply transition-colors duration-200;
   }
+
+  .card {
+    @apply relative overflow-hidden rounded-lg border border-secondary-200 bg-white shadow transition-all hover:shadow-md dark:border-secondary-700 dark:bg-secondary-800;
+  }
+
+  .card-gradient {
+    @apply card;
+    @apply before:absolute before:inset-0 before:opacity-0 before:transition-opacity hover:before:opacity-100;
+    @apply before:bg-gradient-to-br before:from-transparent before:via-primary-500/5 before:to-accent-purple-500/5;
+    @apply dark:before:from-transparent dark:before:via-primary-400/5 dark:before:to-accent-purple-400/5;
+  }
+
+  .card-shine {
+    @apply card;
+    @apply after:absolute after:inset-0 after:bg-gradient-shine after:bg-[length:200%_100%] after:opacity-0 hover:after:animate-shine hover:after:opacity-100;
+  }
+
+  .card-highlight {
+    @apply card;
+    @apply border-2 border-transparent hover:border-primary-500/50 dark:hover:border-primary-400/50;
+    @apply before:absolute before:inset-0 before:rounded-lg before:opacity-0 before:ring-2 before:ring-primary-500/50 before:ring-offset-2 before:transition-opacity hover:before:opacity-100 dark:before:ring-primary-400/50 dark:before:ring-offset-secondary-800;
+  }
 }
 
 @layer utilities {
@@ -68,5 +90,18 @@
     to {
       stroke-dashoffset: 0;
     }
+  }
+
+  .bg-gradient-mesh {
+    background-image: 
+      linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .dark .bg-gradient-mesh {
+    background-image: 
+      linear-gradient(to right, rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
   }
 }

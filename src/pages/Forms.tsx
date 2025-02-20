@@ -31,6 +31,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Switch, Menu, Transition } from '@headlessui/react';
 import { twMerge } from 'tailwind-merge';
 import toast from 'react-hot-toast';
+import { Hoverable3D } from '../components/Hoverable3D';
 
 interface Collection {
   id: string;
@@ -111,44 +112,46 @@ function FormCard({ form, collection }: { form: Form, collection?: Collection })
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative flex flex-col overflow-hidden rounded-lg border border-secondary-200 bg-white shadow transition-all hover:shadow-md dark:border-secondary-700 dark:bg-secondary-800 ${
-        isDragging ? 'opacity-50' : ''
-      }`}
+      className={isDragging ? 'opacity-50' : ''}
     >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute right-2 top-2 cursor-move rounded p-1 text-secondary-400 opacity-0 hover:bg-secondary-100 group-hover:opacity-100 dark:text-secondary-500 dark:hover:bg-secondary-700"
-      >
-        <Bars3Icon className="h-5 w-5" />
-      </div>
+      <Hoverable3D intensity="medium" className="group card-gradient overflow-hidden">
+        <Link to={`/forms/${form.id}`} className="block">
+          {/* Drag Handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute right-2 top-2 cursor-move rounded p-1 text-secondary-400 opacity-0 hover:bg-secondary-100 group-hover:opacity-100 dark:text-secondary-500 dark:hover:bg-secondary-700"
+          >
+            <Bars3Icon className="h-5 w-5" />
+          </div>
 
-      <Link to={`/forms/${form.id}`} className="flex-1 p-6">
-        <div className="flex-1">
-          <CollectionBadge collection={collection} />
-          <h3 className="mt-2 text-lg font-medium text-secondary-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
-            {form.title}
-          </h3>
-          {form.description && (
-            <p className="mt-2 text-sm text-secondary-500 dark:text-secondary-400">
-              {form.description}
-            </p>
-          )}
-        </div>
-        <div className="mt-6">
-          <div className="flex items-center gap-x-6">
-            <div className="flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
-              <CalendarIcon className="h-5 w-5" />
-              <span>Updated {new Date(form.updatedAt).toLocaleDateString()}</span>
+          <div className="relative px-4 py-5 sm:p-6">
+            <div className="flex-1">
+              <CollectionBadge collection={collection} />
+              <h3 className="mt-2 text-lg font-medium text-secondary-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+                {form.title}
+              </h3>
+              {form.description && (
+                <p className="mt-2 text-sm text-secondary-500 dark:text-secondary-400">
+                  {form.description}
+                </p>
+              )}
             </div>
-            <div className="flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
-              <ChatBubbleLeftIcon className="h-5 w-5" />
-              <span>{form.responseCount} responses</span>
+            <div className="mt-6">
+              <div className="flex items-center gap-x-6">
+                <div className="flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
+                  <CalendarIcon className="h-5 w-5 transition-colors group-hover:text-primary-500 dark:group-hover:text-primary-400" />
+                  <span>Updated {new Date(form.updatedAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
+                  <ChatBubbleLeftIcon className="h-5 w-5 transition-colors group-hover:text-accent-purple-500 dark:group-hover:text-accent-purple-400" />
+                  <span>{form.responseCount} responses</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      </Hoverable3D>
     </div>
   );
 }
@@ -393,76 +396,84 @@ function FormListItem({ form, collection }: { form: Form, collection?: Collectio
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-secondary-200 p-4 dark:border-secondary-700">
-      <div className="flex items-center space-x-4">
-        <div className="flex-shrink-0">
-          {collection?.icon && (
-            <collection.icon
-              className="h-6 w-6"
-              style={{ color: collection.color }}
-            />
-          )}
-        </div>
-        <div>
-          <div className="flex items-center gap-x-2">
-            <h3 className="text-sm font-medium text-secondary-900 dark:text-white">
-              {form.title}
-            </h3>
-            {form.scope === 'team' && (
-              <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-200">
-                <UsersIcon className="-ml-0.5 mr-1.5 h-3 w-3" />
-                Team
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-secondary-500 dark:text-secondary-400">
-            {form.description || 'No description'}
-          </p>
-          <div className="mt-2 flex items-center gap-x-2 text-xs text-secondary-500 dark:text-secondary-400">
-            <span>
-              {form.responseCount} {form.responseCount === 1 ? 'response' : 'responses'}
-            </span>
-            <span>•</span>
-            <span>
-              Last updated {new Date(form.updatedAt).toLocaleDateString()}
-            </span>
-            {form.scope === 'team' && form.permissions && (
-              <>
-                <span>•</span>
-                <span className="flex items-center gap-x-1">
-                  <UsersIcon className="h-3 w-3" />
-                  {form.permissions.length} {form.permissions.length === 1 ? 'member' : 'members'}
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={isDragging ? 'opacity-50' : ''}
+    >
+      <Hoverable3D intensity="small" className="w-full">
+        <div className="flex items-center justify-between rounded-lg border border-secondary-200 bg-white p-4 shadow dark:border-secondary-700 dark:bg-secondary-800">
+          <div className="flex items-center space-x-4">
+            <div className="flex-shrink-0">
+              {collection?.icon && (
+                <collection.icon
+                  className="h-6 w-6"
+                  style={{ color: collection.color }}
+                />
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-x-2">
+                <h3 className="text-sm font-medium text-secondary-900 dark:text-white">
+                  {form.title}
+                </h3>
+                {form.scope === 'team' && (
+                  <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-200">
+                    <UsersIcon className="-ml-0.5 mr-1.5 h-3 w-3" />
+                    Team
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-secondary-500 dark:text-secondary-400">
+                {form.description || 'No description'}
+              </p>
+              <div className="mt-2 flex items-center gap-x-2 text-xs text-secondary-500 dark:text-secondary-400">
+                <span>
+                  {form.responseCount} {form.responseCount === 1 ? 'response' : 'responses'}
                 </span>
-              </>
+                <span>•</span>
+                <span>
+                  Last updated {new Date(form.updatedAt).toLocaleDateString()}
+                </span>
+                {form.scope === 'team' && form.permissions && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center gap-x-1">
+                      <UsersIcon className="h-3 w-3" />
+                      {form.permissions.length} {form.permissions.length === 1 ? 'member' : 'members'}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="ml-4 flex items-center gap-x-4">
+            <Switch
+              checked={form.status === 'published'}
+              onChange={handlePublishToggle}
+              className={twMerge(
+                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900',
+                form.status === 'published' ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
+              )}
+            >
+              <span className="sr-only">
+                {form.status === 'published' ? 'Unpublish form' : 'Publish form'}
+              </span>
+              <span
+                className={twMerge(
+                  'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                  form.status === 'published' ? 'translate-x-5' : 'translate-x-0'
+                )}
+              />
+            </Switch>
+
+            {form.status === 'published' && (
+              <ShareDropdown form={form} />
             )}
           </div>
         </div>
-      </div>
-
-      <div className="ml-4 flex items-center gap-x-4">
-        <Switch
-          checked={form.status === 'published'}
-          onChange={handlePublishToggle}
-          className={twMerge(
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900',
-            form.status === 'published' ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
-          )}
-        >
-          <span className="sr-only">
-            {form.status === 'published' ? 'Unpublish form' : 'Publish form'}
-          </span>
-          <span
-            className={twMerge(
-              'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-              form.status === 'published' ? 'translate-x-5' : 'translate-x-0'
-            )}
-          />
-        </Switch>
-
-        {form.status === 'published' && (
-          <ShareDropdown form={form} />
-        )}
-      </div>
+      </Hoverable3D>
     </div>
   );
 }
