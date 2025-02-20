@@ -1,11 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  effectiveTheme: 'light' | 'dark';
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -14,50 +13,45 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check if theme was previously saved
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+    if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
-    // Default to system theme if no saved preference
-    return 'system';
-  });
-
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>(() => {
-    if (theme !== 'system') return theme;
+    // Default to system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
-
-    let newEffectiveTheme = theme;
-    if (theme === 'system') {
-      newEffectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    root.classList.add(newEffectiveTheme);
-    setEffectiveTheme(newEffectiveTheme as 'light' | 'dark');
-    localStorage.setItem('theme', theme);
+    root.classList.add(theme);
   }, [theme]);
 
-  useEffect(() => {
-    if (theme !== 'system') return;
+  const handleThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
+  // Listen for system theme changes
+  useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      const root = window.document.documentElement;
-      const newTheme = e.matches ? 'dark' : 'light';
-      root.classList.remove('light', 'dark');
-      root.classList.add(newTheme);
-      setEffectiveTheme(newTheme);
+      // Only update if no saved preference
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
     };
+
+    // Initial check
+    if (!localStorage.getItem('theme')) {
+      setTheme(mediaQuery.matches ? 'dark' : 'light');
+    }
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, effectiveTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme: handleThemeChange }}>
       {children}
     </ThemeContext.Provider>
   );
