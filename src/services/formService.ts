@@ -10,6 +10,7 @@ import type {
 import { config } from '../config';
 import { createRequestValidator, createResponseValidator } from '../utils/validation';
 import { z } from 'zod';
+import { mockForms, mockResponses, mockAnalytics } from '../config/mockData';
 
 // Validators
 const validateForm = createResponseValidator(formSchema);
@@ -21,11 +22,7 @@ export type { Form, FormResponse, FormAnalytics };
 
 // Helper functions
 function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+  return Math.random().toString(36).substring(2, 15);
 }
 
 function randomDate(start: Date, end: Date): Date {
@@ -58,114 +55,6 @@ const generateMockResponses = (form: Form): FormResponse[] => {
     }, {}),
   }));
 };
-
-// Mock data for development
-const mockForms: Form[] = [
-  {
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    title: 'Customer Feedback',
-    description: 'Help us improve our service',
-    fields: [
-      {
-        id: 'name',
-        type: 'text',
-        label: 'Name',
-        placeholder: 'Enter your name',
-        required: true,
-      },
-      {
-        id: 'email',
-        type: 'email',
-        label: 'Email',
-        placeholder: 'Enter your email',
-        required: true,
-      },
-      {
-        id: 'rating',
-        type: 'select',
-        label: 'Rating',
-        options: [
-          { value: '5', label: 'Excellent' },
-          { value: '4', label: 'Good' },
-          { value: '3', label: 'Average' },
-          { value: '2', label: 'Poor' },
-          { value: '1', label: 'Very Poor' },
-        ],
-        required: true,
-      },
-      {
-        id: 'feedback',
-        type: 'voice',
-        label: 'Feedback',
-        placeholder: 'Share your thoughts',
-        required: true,
-      },
-    ],
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-    updatedAt: new Date().toISOString(),
-    userId: 'user-1',
-    status: 'published',
-    responseCount: 5,
-    scope: 'personal' as const,
-  },
-  {
-    id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-    title: 'Event Registration',
-    description: 'Register for our upcoming event',
-    fields: [
-      {
-        id: 'name',
-        type: 'text',
-        label: 'Full Name',
-        required: true,
-      },
-      {
-        id: 'email',
-        type: 'email',
-        label: 'Email',
-        required: true,
-      },
-      {
-        id: 'phone',
-        type: 'text',
-        label: 'Phone',
-        required: false,
-      },
-      {
-        id: 'dietary',
-        type: 'select',
-        label: 'Dietary Preferences',
-        options: [
-          { value: 'none', label: 'None' },
-          { value: 'vegetarian', label: 'Vegetarian' },
-          { value: 'vegan', label: 'Vegan' },
-          { value: 'gluten-free', label: 'Gluten-Free' },
-        ],
-        required: false,
-      },
-    ],
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    userId: 'user-1',
-    status: 'draft',
-    responseCount: 0,
-    scope: 'team' as const,
-    permissions: [
-      {
-        userId: 'user-1',
-        role: 'owner' as const,
-        addedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        addedBy: 'user-1',
-      }
-    ],
-  },
-];
-
-// Generate mock responses for all forms
-const mockResponses: Record<string, FormResponse[]> = mockForms.reduce((acc, form) => {
-  acc[form.id] = generateMockResponses(form);
-  return acc;
-}, {} as Record<string, FormResponse[]>);
 
 class FormService {
   async getForm(id: string): Promise<Form> {
@@ -204,20 +93,10 @@ class FormService {
 
   async getFormAnalytics(formId: string): Promise<FormAnalytics> {
     if (config.environment === 'local-ui') {
-      const form = await this.getForm(formId);
-      const analytics: FormAnalytics = {
-        totalResponses: form.responseCount,
-        averageCompletionTime: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
-        completionRate: Math.random() * 0.3 + 0.7, // 70-100%
-        responseTimeline: Array.from({ length: 30 }, (_, i) => ({
-          date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          count: Math.floor(Math.random() * 10),
-        })),
-        fieldCompletion: form.fields.map(field => ({
-          fieldId: field.id,
-          completionRate: Math.random() * 0.2 + 0.8, // 80-100%
-        })),
-      };
+      const analytics = mockAnalytics[formId];
+      if (!analytics) {
+        throw new Error(`Analytics not found for form: ${formId}`);
+      }
       return validateFormAnalytics(analytics);
     }
 

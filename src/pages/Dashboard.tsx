@@ -10,26 +10,49 @@ interface FormWithAnalytics {
 }
 
 function UsageStats({ formsWithAnalytics }: { formsWithAnalytics: FormWithAnalytics[] }) {
-  const totalForms = formsWithAnalytics.length;
-  const totalResponses = formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.totalResponses, 0);
-  const activeFormsCount = formsWithAnalytics.filter(({ analytics }) => analytics.totalResponses > 0).length;
+  // Calculate aggregated metrics
+  const completionRate = formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.completionRate, 0) / formsWithAnalytics.length;
+  const voiceAdoptionRate = formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.voiceAdoptionRate, 0) / formsWithAnalytics.length;
+  const avgCompletionTimes = {
+    total: formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.averageCompletionTime.total, 0) / formsWithAnalytics.length,
+    voice: formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.averageCompletionTime.voice, 0) / formsWithAnalytics.length,
+    manual: formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.averageCompletionTime.manual, 0) / formsWithAnalytics.length,
+  };
+  const activeForms7d = formsWithAnalytics.reduce((sum, { analytics }) => sum + analytics.activeForms7d, 0);
 
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
-        <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">Total Forms</dt>
-        <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 dark:text-white">{totalForms}</dd>
+        <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">Form Completion Rate</dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 dark:text-white">
+          {Math.round(completionRate * 100)}%
+        </dd>
       </div>
       <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
-        <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">Total Responses</dt>
-        <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 dark:text-white">{totalResponses}</dd>
+        <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">Voice Adoption Rate</dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 dark:text-white">
+          {Math.round(voiceAdoptionRate * 100)}%
+        </dd>
+      </div>
+      <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
+        <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">Avg. Completion Time</dt>
+        <dd className="mt-1 text-2xl font-semibold tracking-tight text-secondary-900 dark:text-white">
+          {Math.round(avgCompletionTimes.total / 60)}m {Math.round(avgCompletionTimes.total % 60)}s
+          <div className="mt-1 flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
+            <span>Voice: {Math.round(avgCompletionTimes.voice / 60)}m {Math.round(avgCompletionTimes.voice % 60)}s</span>
+            <span>•</span>
+            <span>Manual: {Math.round(avgCompletionTimes.manual / 60)}m {Math.round(avgCompletionTimes.manual % 60)}s</span>
+          </div>
+        </dd>
       </div>
       <Link 
-        to="/forms?collection=published"
+        to="/forms?collection=active"
         className="group overflow-hidden rounded-lg bg-white px-4 py-5 shadow transition-all hover:shadow-md dark:bg-secondary-800 sm:p-6"
       >
-        <dt className="truncate text-sm font-medium text-secondary-500 group-hover:text-primary-600 dark:text-secondary-400 dark:group-hover:text-primary-400">Active Forms</dt>
-        <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">{activeFormsCount}</dd>
+        <dt className="truncate text-sm font-medium text-secondary-500 group-hover:text-primary-600 dark:text-secondary-400 dark:group-hover:text-primary-400">Active Forms (7d)</dt>
+        <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+          {activeForms7d}
+        </dd>
       </Link>
     </div>
   );

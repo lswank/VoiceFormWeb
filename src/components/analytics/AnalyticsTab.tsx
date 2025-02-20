@@ -8,13 +8,14 @@ interface AnalyticsTabProps {
 }
 
 export function AnalyticsTab({ form, analytics }: AnalyticsTabProps) {
-  // Transform field completion data to include field labels
+  // Transform field completion data to include field labels and voice usage
   const fieldCompletionData = analytics.fieldCompletion.map((field) => {
     const fieldConfig = form.fields.find((f) => f.id === field.fieldId);
     return {
       fieldId: field.fieldId,
       fieldLabel: fieldConfig?.label || 'Unknown Field',
       completionRate: field.completionRate,
+      voiceUsageRate: field.voiceUsageRate,
     };
   });
 
@@ -29,7 +30,7 @@ export function AnalyticsTab({ form, analytics }: AnalyticsTabProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
           <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">
             Total Responses
@@ -40,19 +41,31 @@ export function AnalyticsTab({ form, analytics }: AnalyticsTabProps) {
         </div>
         <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
           <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">
-            Average Completion Time
+            Form Completion Rate
           </dt>
           <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 dark:text-white">
-            {Math.floor(analytics.averageCompletionTime / 60)}m{' '}
-            {Math.floor(analytics.averageCompletionTime % 60)}s
+            {Math.round(analytics.completionRate * 100)}%
           </dd>
         </div>
         <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
           <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">
-            Completion Rate
+            Voice Adoption Rate
           </dt>
           <dd className="mt-1 text-3xl font-semibold tracking-tight text-secondary-900 dark:text-white">
-            {Math.round(analytics.completionRate * 100)}%
+            {Math.round(analytics.voiceAdoptionRate * 100)}%
+          </dd>
+        </div>
+        <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-secondary-800 sm:p-6">
+          <dt className="truncate text-sm font-medium text-secondary-500 dark:text-secondary-400">
+            Avg. Completion Time
+          </dt>
+          <dd className="mt-1 text-2xl font-semibold tracking-tight text-secondary-900 dark:text-white">
+            {Math.round(analytics.averageCompletionTime.total / 60)}m {Math.round(analytics.averageCompletionTime.total % 60)}s
+            <div className="mt-1 flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
+              <span>Voice: {Math.round(analytics.averageCompletionTime.voice / 60)}m {Math.round(analytics.averageCompletionTime.voice % 60)}s</span>
+              <span>•</span>
+              <span>Manual: {Math.round(analytics.averageCompletionTime.manual / 60)}m {Math.round(analytics.averageCompletionTime.manual % 60)}s</span>
+            </div>
           </dd>
         </div>
       </div>
