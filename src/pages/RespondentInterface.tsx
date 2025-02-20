@@ -410,6 +410,7 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
                 ...field,
                 value: formData[field.id] || '',
               }}
+              readOnly={true}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,
