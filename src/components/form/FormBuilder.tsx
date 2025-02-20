@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -10,8 +10,7 @@ import {
 } from '@dnd-kit/sortable';
 import { type FieldConfig, type FieldType } from './Field';
 import { FieldPalette } from './FieldPalette';
-import { Button } from '../Button';
-import { Input } from '../Input';
+
 import type { Form } from '../../schemas/form';
 import { SortableField } from './SortableField';
 
@@ -44,6 +43,7 @@ function generateId(): string {
 }
 
 export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderProps) {
+  const latestFieldRef = useRef<HTMLDivElement>(null);
   const [formConfig, setFormConfig] = useState<FormConfig>(() => {
     if (!form) return initialForm;
     
@@ -129,6 +129,11 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
       ...prev,
       fields: [...prev.fields, newField],
     }));
+
+    // Use setTimeout to ensure DOM has updated before scrolling
+    setTimeout(() => {
+      latestFieldRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   };
 
   const handleUpdateField = (fieldId: string, updates: Partial<FieldConfig>) => {
@@ -174,13 +179,14 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-4">
-            {formConfig.fields.map((field) => (
+            {formConfig.fields.map((field, index) => (
               <SortableField
                 key={field.id}
                 field={field}
                 onUpdate={handleUpdateField}
                 onRemove={handleRemoveField}
                 readOnly={readOnly}
+                ref={index === formConfig.fields.length - 1 ? latestFieldRef : null}
               />
             ))}
           </div>
@@ -199,4 +205,4 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
       )}
     </div>
   );
-} 
+}      

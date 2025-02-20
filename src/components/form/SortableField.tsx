@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Field, type FieldConfig } from './Field';
@@ -10,12 +11,12 @@ interface SortableFieldProps {
   readOnly?: boolean;
 }
 
-export function SortableField({
+export const SortableField = forwardRef<HTMLDivElement, SortableFieldProps>(({
   field,
   onUpdate,
   onRemove,
   readOnly = false,
-}: SortableFieldProps) {
+}, ref) => {
   const {
     attributes,
     listeners,
@@ -35,7 +36,14 @@ export function SortableField({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        setNodeRef(node);
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      }}
       style={style}
       className={`relative rounded-lg border border-secondary-200 bg-white p-4 dark:border-secondary-700 dark:bg-secondary-800 ${
         isDragging ? 'opacity-50' : ''
@@ -60,4 +68,4 @@ export function SortableField({
       )}
     </div>
   );
-} 
+});  
