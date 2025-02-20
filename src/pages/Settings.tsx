@@ -18,10 +18,10 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemeSettings {
-  theme: 'light' | 'dark' | 'system';
-  enableAnimations: boolean;
+  reduceMotion: boolean;
 }
 
 interface FormSettings {
@@ -50,9 +50,9 @@ interface TwoFactorSetupState {
 }
 
 export function Settings() {
+  const { theme, setTheme } = useTheme();
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
-    theme: 'system',
-    enableAnimations: true,
+    reduceMotion: false,
   });
 
   const [formSettings, setFormSettings] = useState<FormSettings>({
@@ -97,7 +97,8 @@ export function Settings() {
 
   const handleExportSettings = () => {
     const settings = {
-      theme: themeSettings,
+      theme,
+      reduceMotion: themeSettings.reduceMotion,
       form: formSettings,
       security: securitySettings,
       notifications: notificationSettings,
@@ -121,7 +122,8 @@ export function Settings() {
     reader.onload = (event) => {
       try {
         const settings = JSON.parse(event.target?.result as string);
-        if (settings.theme) setThemeSettings(settings.theme);
+        if (settings.theme) setTheme(settings.theme);
+        if (settings.reduceMotion !== undefined) setThemeSettings(prev => ({ ...prev, reduceMotion: settings.reduceMotion }));
         if (settings.form) setFormSettings(settings.form);
         if (settings.security) setSecuritySettings(settings.security);
         if (settings.notifications) setNotificationSettings(settings.notifications);
@@ -258,13 +260,13 @@ export function Settings() {
                     Theme
                   </label>
                   <div className="mt-2 space-x-2">
-                    {['light', 'dark', 'system'].map((theme) => (
+                    {['light', 'dark', 'system'].map((t) => (
                       <Button
-                        key={theme}
-                        variant={themeSettings.theme === theme ? 'primary' : 'secondary'}
-                        onClick={() => setThemeSettings(prev => ({ ...prev, theme: theme as 'light' | 'dark' | 'system' }))}
+                        key={t}
+                        variant={theme === t ? 'primary' : 'secondary'}
+                        onClick={() => setTheme(t as 'light' | 'dark' | 'system')}
                       >
-                        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                        {t.charAt(0).toUpperCase() + t.slice(1)}
                       </Button>
                     ))}
                   </div>
@@ -272,24 +274,24 @@ export function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
-                      Enable animations
+                      Reduce motion
                     </p>
                     <p className="text-sm text-secondary-500 dark:text-secondary-400">
-                      Show animations for transitions and interactions
+                      Minimize animations and transitions for improved accessibility
                     </p>
                   </div>
                   <Switch
-                    checked={themeSettings.enableAnimations}
-                    onChange={(checked) => setThemeSettings(prev => ({ ...prev, enableAnimations: checked }))}
+                    checked={themeSettings.reduceMotion}
+                    onChange={(checked) => setThemeSettings(prev => ({ ...prev, reduceMotion: checked }))}
                     className={twMerge(
                       'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900',
-                      themeSettings.enableAnimations ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
+                      themeSettings.reduceMotion ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
                     )}
                   >
                     <span
                       className={twMerge(
                         'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                        themeSettings.enableAnimations ? 'translate-x-5' : 'translate-x-0'
+                        themeSettings.reduceMotion ? 'translate-x-5' : 'translate-x-0'
                       )}
                     />
                   </Switch>
