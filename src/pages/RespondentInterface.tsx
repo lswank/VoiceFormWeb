@@ -182,7 +182,11 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
         );
         setFormData(initialData);
       } catch (err) {
-        setError('Failed to load form. Please try again later.');
+        if (err instanceof Error && err.message.includes('Form not found')) {
+          setError(`Form not found: ${id}. Please check the URL and try again.`);
+        } else {
+          setError('Failed to load form. Please try again later.');
+        }
         console.error('Error fetching form:', err);
       } finally {
         setIsLoading(false);

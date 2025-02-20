@@ -2,8 +2,8 @@ import type { Form, Field, FieldOption, FieldType, FormStatus, FormScope } from 
 import type { FormResponse, FormAnalytics } from '../schemas/form';
 
 // Helper functions
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
+function generateId(index: number): string {
+  return `form-${index}`;
 }
 
 function randomDate(start: Date, end: Date): Date {
@@ -73,7 +73,7 @@ const generateMockForm = (index: number): Form => {
   const status: FormStatus = Math.random() > 0.7 ? 'draft' : 'published';
   const scope: FormScope = Math.random() > 0.5 ? 'personal' : 'team';
   return {
-    id: generateId(),
+    id: generateId(index),
     title: `Form ${index + 1}`,
     description: `Description for Form ${index + 1}`,
     createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -92,7 +92,7 @@ export const mockForms: Form[] = Array.from({ length: 10 }, (_, i) => generateMo
 // Generate mock responses for a form
 const generateMockResponses = (form: Form): FormResponse[] => {
   return Array.from({ length: form.responseCount }, () => ({
-    id: generateId(),
+    id: generateId(Math.floor(Math.random() * 100)),
     formId: form.id,
     submittedAt: randomDate(new Date(2023, 0, 1), new Date()).toISOString(),
     data: form.fields.reduce((acc, field) => {

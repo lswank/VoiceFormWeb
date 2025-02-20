@@ -260,11 +260,11 @@ export function Settings() {
                     Theme
                   </label>
                   <div className="mt-2 space-x-2">
-                    {['light', 'dark', 'system'].map((t) => (
+                    {['light', 'dark'].map((t) => (
                       <Button
                         key={t}
                         variant={theme === t ? 'primary' : 'secondary'}
-                        onClick={() => setTheme(t as 'light' | 'dark' | 'system')}
+                        onClick={() => setTheme(t as 'light' | 'dark')}
                       >
                         {t.charAt(0).toUpperCase() + t.slice(1)}
                       </Button>
