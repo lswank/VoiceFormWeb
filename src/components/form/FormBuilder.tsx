@@ -35,6 +35,14 @@ interface FormBuilderProps {
   onChange?: (form: Form) => void;
 }
 
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderProps) {
   const [formConfig, setFormConfig] = useState<FormConfig>(() => {
     if (!form) return initialForm;
@@ -74,12 +82,13 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
     if (onChange) {
       onChange({
         ...(form ?? {
-          id: 'new',
+          id: generateId(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           userId: 'preview',
           status: 'draft',
           responseCount: 0,
+          scope: 'personal',
         }),
         title: formConfig.title,
         description: formConfig.description,

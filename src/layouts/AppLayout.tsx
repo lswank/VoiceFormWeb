@@ -4,7 +4,7 @@ import {
   UserCircleIcon,
   PlusIcon,
   HomeIcon,
-  ChevronDownIcon,
+  ChevronRightIcon,
   DocumentTextIcon,
   ChartBarIcon,
   Cog6ToothIcon,
@@ -40,63 +40,44 @@ export function AppLayout({ children }: AppLayoutProps) {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const items = [];
     
-    // Add home button as first item
+    // Add home as first item
     items.push({
       name: 'Home',
       href: '/dashboard',
-      isHome: true,
+      icon: HomeIcon,
     });
 
-    // Add current section as second item
-    const currentSection = navigation.find(nav => location.pathname.startsWith(nav.href)) || {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: HomeIcon
-    };
-    items.push({
-      name: currentSection.name,
-      href: currentSection.href,
-      isSection: true,
-      icon: currentSection.icon,
-    });
-    
-    // Skip the first segment if it's "dashboard"
-    const startIndex = pathSegments[0] === 'dashboard' ? 1 : 0;
-    
-    let currentPath = '';
-    for (let i = startIndex; i < pathSegments.length; i++) {
-      // Skip if this is the current section
-      if (pathSegments[i] === currentSection.href.split('/')[1]) continue;
-      
-      currentPath += `/${pathSegments[i]}`;
-      
-      // If we're on a form page and have the form data, use the form title
-      if (pathSegments[i] === id) {
+    // Add forms section if we're in forms
+    if (pathSegments[0] === 'forms') {
+      items.push({
+        name: 'Forms',
+        href: '/forms',
+        icon: DocumentTextIcon,
+      });
+
+      // Add form details if we're viewing a specific form
+      if (id) {
         if (isLoading) {
           items.push({ 
-            name: '...', 
-            href: currentPath, 
-            current: i === pathSegments.length - 1 
+            name: 'Loading...',
+            href: `/forms/${id}`,
+            isLoading: true,
           });
         } else if (form) {
           items.push({ 
-            name: form.title, 
-            href: currentPath, 
-            current: i === pathSegments.length - 1 
+            name: form.title || 'Untitled Form',
+            href: `/forms/${id}`,
           });
         } else {
-          items.push({ 
-            name: 'Form not found', 
-            href: currentPath, 
-            current: i === pathSegments.length - 1 
+          items.push({
+            name: 'Form Details',
+            href: `/forms/${id}`,
           });
         }
-      } else {
-        const name = pathSegments[i].charAt(0).toUpperCase() + pathSegments[i].slice(1);
-        items.push({ 
-          name, 
-          href: currentPath,
-          current: i === pathSegments.length - 1 
+      } else if (pathSegments[1] === 'new') {
+        items.push({
+          name: 'New Form',
+          href: '/forms/new',
         });
       }
     }
@@ -109,83 +90,30 @@ export function AppLayout({ children }: AppLayoutProps) {
     
     return (
       <nav className="flex" aria-label="Breadcrumb">
-        <ol className="flex items-center space-x-4">
+        <ol className="flex items-center space-x-2">
           {items.map((item, index) => (
-            <li key={item.href}>
-              <div className="flex items-center">
-                {index > 0 && (
-                  <ChevronDownIcon
-                    className="h-4 w-4 flex-shrink-0 text-secondary-300 dark:text-secondary-600"
-                    style={{ transform: 'rotate(-90deg)' }}
-                    aria-hidden="true"
-                  />
-                )}
-                {item.isHome ? (
-                  <Link
-                    to={item.href}
-                    className="flex items-center rounded-md p-1.5 text-sm font-medium text-secondary-400 hover:bg-secondary-50 hover:text-secondary-500 dark:text-secondary-500 dark:hover:bg-secondary-800 dark:hover:text-secondary-400"
-                  >
-                    <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-                  </Link>
-                ) : item.isSection ? (
-                  <Menu as="div" className="relative">
-                    <Menu.Button className="flex items-center gap-x-1 rounded-md py-1.5 pl-2 pr-1.5 text-sm font-medium text-secondary-600 hover:bg-secondary-50 hover:text-secondary-900 dark:text-secondary-400 dark:hover:bg-secondary-800 dark:hover:text-secondary-200">
-                      <span>{item.name}</span>
-                      <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
-                    </Menu.Button>
-                    <Transition
-                      as={Fragment}
-                      enter="transition ease-out duration-100"
-                      enterFrom="transform opacity-0 scale-95"
-                      enterTo="transform opacity-100 scale-100"
-                      leave="transition ease-in duration-75"
-                      leaveFrom="transform opacity-100 scale-100"
-                      leaveTo="transform opacity-0 scale-95"
-                    >
-                      <Menu.Items className="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-secondary-800 dark:ring-secondary-700">
-                        {navigation.map((navItem) => {
-                          const Icon = navItem.icon;
-                          const isCurrentPage = location.pathname.startsWith(navItem.href);
-                          return (
-                            <Menu.Item key={navItem.name}>
-                              {({ active }) => (
-                                <Link
-                                  to={navItem.href}
-                                  className={`flex items-center px-4 py-2 text-sm ${
-                                    active || isCurrentPage
-                                      ? 'bg-secondary-100 text-secondary-900 dark:bg-secondary-700 dark:text-white'
-                                      : 'text-secondary-700 dark:text-secondary-300'
-                                  }`}
-                                >
-                                  <Icon className="mr-3 h-5 w-5 text-secondary-400" aria-hidden="true" />
-                                  {navItem.name}
-                                  {isCurrentPage && (
-                                    <span className="ml-auto text-secondary-400 dark:text-secondary-500">
-                                      Current
-                                    </span>
-                                  )}
-                                </Link>
-                              )}
-                            </Menu.Item>
-                          );
-                        })}
-                      </Menu.Items>
-                    </Transition>
-                  </Menu>
-                ) : (
-                  <Link
-                    to={item.href}
-                    className={`ml-4 text-sm font-medium ${
-                      item.current
-                        ? 'text-secondary-700 dark:text-secondary-200'
-                        : 'text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200'
-                    }`}
-                    aria-current={item.current ? 'page' : undefined}
-                  >
-                    {item.name}
-                  </Link>
-                )}
-              </div>
+            <li key={item.href} className="flex items-center">
+              {index > 0 && (
+                <ChevronRightIcon
+                  className="mx-2 h-5 w-5 flex-shrink-0 text-secondary-300 dark:text-secondary-600"
+                  aria-hidden="true"
+                />
+              )}
+              {item.isLoading ? (
+                <div className="flex items-center rounded-md py-1.5 pl-2 pr-1.5">
+                  <div className="h-4 w-48 animate-pulse rounded bg-secondary-200 dark:bg-secondary-700" />
+                </div>
+              ) : (
+                <Link
+                  to={item.href}
+                  className="flex items-center rounded-md py-1.5 pl-2 pr-1.5 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-400 dark:hover:text-secondary-200"
+                >
+                  {item.icon && (
+                    <item.icon className="mr-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                  )}
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              )}
             </li>
           ))}
         </ol>

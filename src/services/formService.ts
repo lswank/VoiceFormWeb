@@ -21,7 +21,11 @@ export type { Form, FormResponse, FormAnalytics };
 
 // Helper functions
 function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }
 
 function randomDate(start: Date, end: Date): Date {
@@ -58,7 +62,7 @@ const generateMockResponses = (form: Form): FormResponse[] => {
 // Mock data for development
 const mockForms: Form[] = [
   {
-    id: '1',
+    id: '550e8400-e29b-41d4-a716-446655440000',
     title: 'Customer Feedback',
     description: 'Help us improve our service',
     fields: [
@@ -105,7 +109,7 @@ const mockForms: Form[] = [
     scope: 'personal' as const,
   },
   {
-    id: '2',
+    id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
     title: 'Event Registration',
     description: 'Register for our upcoming event',
     fields: [
@@ -257,7 +261,7 @@ class FormService {
     if (config.environment === 'local-ui') {
       const newForm: Form = {
         ...form,
-        id: `form-${Date.now()}`,
+        id: generateId(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         scope: form.scope || 'personal', // Default to personal scope
@@ -287,7 +291,7 @@ class FormService {
       const form = await this.getForm(id);
       const newForm: Form = {
         ...form,
-        id: `form-${Date.now()}`,
+        id: generateId(),
         title: `${form.title} (Copy)`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

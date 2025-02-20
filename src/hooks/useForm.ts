@@ -10,10 +10,14 @@ export function useForm(formId: string | undefined) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       if (!formId) {
-        setError('No form ID provided');
-        setIsLoading(false);
+        if (isMounted) {
+          setError('No form ID provided');
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -23,10 +27,14 @@ export function useForm(formId: string | undefined) {
           formService.getFormAnalytics(formId),
         ]);
 
-        setForm(formData);
-        setAnalytics(analyticsData);
-        setError(null);
+        if (isMounted) {
+          setForm(formData);
+          setAnalytics(analyticsData);
+          setError(null);
+        }
       } catch (err) {
+        if (!isMounted) return;
+
         if (err instanceof ValidationError) {
           setError('Invalid data received from server. Please contact support.');
           console.error('Validation error:', err.errors);
@@ -35,12 +43,18 @@ export function useForm(formId: string | undefined) {
           console.error('Error fetching form data:', err);
         }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     setIsLoading(true);
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [formId]);
 
   const mutate = (updatedForm: Form) => {
