@@ -18,9 +18,9 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemeSettings {
-  theme: 'light' | 'dark' | 'system';
   enableAnimations: boolean;
 }
 
@@ -50,8 +50,8 @@ interface TwoFactorSetupState {
 }
 
 export function Settings() {
+  const { theme, setTheme } = useTheme();
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
-    theme: 'system',
     enableAnimations: true,
   });
 
@@ -97,7 +97,8 @@ export function Settings() {
 
   const handleExportSettings = () => {
     const settings = {
-      theme: themeSettings,
+      theme,
+      animations: themeSettings.enableAnimations,
       form: formSettings,
       security: securitySettings,
       notifications: notificationSettings,
@@ -121,7 +122,8 @@ export function Settings() {
     reader.onload = (event) => {
       try {
         const settings = JSON.parse(event.target?.result as string);
-        if (settings.theme) setThemeSettings(settings.theme);
+        if (settings.theme) setTheme(settings.theme);
+        if (settings.animations !== undefined) setThemeSettings(prev => ({ ...prev, enableAnimations: settings.animations }));
         if (settings.form) setFormSettings(settings.form);
         if (settings.security) setSecuritySettings(settings.security);
         if (settings.notifications) setNotificationSettings(settings.notifications);
@@ -258,13 +260,13 @@ export function Settings() {
                     Theme
                   </label>
                   <div className="mt-2 space-x-2">
-                    {['light', 'dark', 'system'].map((theme) => (
+                    {['light', 'dark', 'system'].map((t) => (
                       <Button
-                        key={theme}
-                        variant={themeSettings.theme === theme ? 'primary' : 'secondary'}
-                        onClick={() => setThemeSettings(prev => ({ ...prev, theme: theme as 'light' | 'dark' | 'system' }))}
+                        key={t}
+                        variant={theme === t ? 'primary' : 'secondary'}
+                        onClick={() => setTheme(t as 'light' | 'dark' | 'system')}
                       >
-                        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                        {t.charAt(0).toUpperCase() + t.slice(1)}
                       </Button>
                     ))}
                   </div>
