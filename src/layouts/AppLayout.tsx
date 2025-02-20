@@ -13,6 +13,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { Button } from '../components/Button';
 import { useForm } from '../hooks/useForm';
+import { Logo } from '../components/Logo';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
@@ -122,11 +123,33 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   return (
-    <div>
-      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-secondary-200 bg-white px-4 shadow-sm dark:border-secondary-700 dark:bg-secondary-900 sm:gap-x-6 sm:px-6 lg:px-8">
-        <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-          <div className="flex flex-1 items-center justify-between">
-            {renderBreadcrumbs()}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="bg-white dark:bg-gray-800 shadow">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 justify-between">
+            <div className="flex">
+              <div className="flex flex-shrink-0 items-center">
+                <Link to="/dashboard">
+                  <Logo />
+                </Link>
+              </div>
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                      location.pathname.startsWith(item.href)
+                        ? 'border-b-2 border-indigo-500 text-gray-900 dark:text-white'
+                        : 'text-gray-500 hover:border-b-2 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    <item.icon className="mr-2 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-x-4">
               <Link to="/forms/new">
                 <Button>
