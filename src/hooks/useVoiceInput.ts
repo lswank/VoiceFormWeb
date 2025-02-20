@@ -80,16 +80,21 @@ export function useVoiceInput({
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {
+      console.log('Window is undefined');
+      return;
+    }
 
     // Check browser support
     if (!('webkitSpeechRecognition' in window)) {
       const errorMessage = 'Speech recognition is not supported in this browser.';
+      console.log('Speech recognition not supported');
       setError(errorMessage);
       onError?.(errorMessage);
       return;
     }
 
+    console.log('Creating speech recognition instance');
     // Create recognition instance
     const recognitionInstance = new window.webkitSpeechRecognition();
 
@@ -100,6 +105,7 @@ export function useVoiceInput({
 
     // Set up event handlers
     recognitionInstance.onstart = () => {
+      console.log('Recognition started');
       setIsRecording(true);
       setError(null);
       // Reset transcripts when starting new recording
@@ -109,6 +115,7 @@ export function useVoiceInput({
     };
 
     recognitionInstance.onend = () => {
+      console.log('Recognition ended');
       setIsRecording(false);
       // Process any remaining interim transcript
       if (interimTranscriptRef.current) {
@@ -119,6 +126,7 @@ export function useVoiceInput({
     };
 
     recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+      console.log('Got recognition result');
       clearDebounceTimeout();
 
       let interimTranscript = '';
@@ -150,6 +158,7 @@ export function useVoiceInput({
     };
 
     recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.log('Recognition error:', event.error);
       const errorMessage = `Speech recognition error: ${event.error}`;
       setError(errorMessage);
       onError?.(errorMessage);
@@ -160,6 +169,7 @@ export function useVoiceInput({
 
     // Cleanup
     return () => {
+      console.log('Cleaning up recognition');
       clearDebounceTimeout();
       if (recognitionInstance) {
         recognitionInstance.stop();
@@ -168,6 +178,7 @@ export function useVoiceInput({
   }, [language, continuous, interimResults, onError, debounceMs, clearDebounceTimeout]);
 
   const startRecording = useCallback(() => {
+    console.log('Starting recording, recognition:', !!recognition);
     if (!recognition) return;
     try {
       recognition.start();
@@ -177,6 +188,7 @@ export function useVoiceInput({
   }, [recognition]);
 
   const stopRecording = useCallback(() => {
+    console.log('Stopping recording, recognition:', !!recognition);
     if (!recognition) return;
     try {
       clearDebounceTimeout();
