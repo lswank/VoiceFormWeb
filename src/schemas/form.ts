@@ -74,8 +74,13 @@ export const formResponseSchema = z.object({
 // Form analytics schema
 export const formAnalyticsSchema = z.object({
   totalResponses: z.number().int().min(0),
-  averageCompletionTime: z.number().min(0),
   completionRate: z.number().min(0).max(1),
+  voiceAdoptionRate: z.number().min(0).max(1),
+  averageCompletionTime: z.object({
+    total: z.number().min(0),
+    voice: z.number().min(0),
+    manual: z.number().min(0),
+  }),
   responseTimeline: z.array(
     z.object({
       date: z.string(),
@@ -86,8 +91,10 @@ export const formAnalyticsSchema = z.object({
     z.object({
       fieldId: z.string(),
       completionRate: z.number().min(0).max(1),
+      voiceUsageRate: z.number().min(0).max(1),
     })
   ),
+  activeForms7d: z.number().int().min(0),
 });
 
 // Export types derived from schemas

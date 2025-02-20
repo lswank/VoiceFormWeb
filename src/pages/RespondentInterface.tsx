@@ -8,6 +8,7 @@ import { useVoiceInput } from '../hooks/useVoiceInput';
 import { formService, type Form } from '../services/formService';
 import { aiService } from '../services/aiService';
 import { emailService } from '../services/emailService';
+import { AudioWaveform } from '../components/AudioWaveform';
 
 // Mock form data
 const mockForm = {
@@ -48,28 +49,30 @@ interface ClarificationPrompt {
 
 function VoiceButton({ isRecording, onToggle }: { isRecording: boolean; onToggle: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={twMerge(
-        'relative inline-flex h-16 w-16 items-center justify-center rounded-full transition-colors',
-        isRecording
-          ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-400 dark:hover:bg-red-800'
-          : 'bg-primary-100 text-primary-600 hover:bg-primary-200 dark:bg-primary-900 dark:text-primary-400 dark:hover:bg-primary-800'
-      )}
-    >
-      {isRecording ? (
-        <>
-          <PauseIcon className="h-8 w-8" />
-          <span className="absolute -right-1 -top-1 flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
-          </span>
-        </>
-      ) : (
-        <MicrophoneIcon className="h-8 w-8" />
-      )}
-    </button>
+    <div className="flex flex-col items-center gap-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        className={twMerge(
+          'relative h-20 w-20 rounded-full transition-colors duration-300',
+          isRecording 
+            ? 'bg-red-500 hover:bg-red-600' 
+            : 'bg-primary-500 hover:bg-primary-600'
+        )}
+      >
+        <AudioWaveform isRecording={isRecording} />
+        <MicrophoneIcon className="absolute inset-0 m-auto h-8 w-8 text-white" />
+      </button>
+      <div className="flex items-center gap-2">
+        <span className={twMerge(
+          "inline-block h-2 w-2 rounded-full",
+          isRecording ? "bg-red-500" : "bg-secondary-300"
+        )} />
+        <span className="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+          {isRecording ? 'Recording... Click to Stop' : 'Click to Start Recording'}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -289,43 +292,31 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
   };
 
   const handleSubmit = async () => {
-    if (!id || !form || isPreview) return;
-
+    if (!form) return;
     setIsSubmitting(true);
+    
     try {
-      // Submit form response
-      const response = await formService.submitFormResponse(id, formData);
+      await formService.submitFormResponse(form.id, formData);
 
-      // Send confirmation email if email field exists
-      const emailField = form.fields.find(
-        (f) => f.type === 'email' || f.id.toLowerCase().includes('email')
-      );
-      if (emailField && formData[emailField.id]) {
-        try {
+      if (!isPreview) {
+        // Send confirmation email
+        const emailField = form.fields.find(f => f.type === 'email');
+        if (emailField?.id && formData[emailField.id]) {
           await emailService.sendFormSubmissionConfirmation(
             formData[emailField.id],
             form,
-            response
+            { id: crypto.randomUUID(), formId: form.id, data: formData, submittedAt: new Date().toISOString() }
           );
-        } catch (err) {
-          // Log error but don't block submission
-          console.error('Failed to send confirmation email:', err);
         }
+        navigate('/thank-you');
       }
 
-      // Send notification to form owner
-      try {
-        await emailService.sendFormResponseNotification(form, response);
-      } catch (err) {
-        // Log error but don't block submission
-        console.error('Failed to send notification email:', err);
-      }
-
-      // Show success message and redirect
-      navigate(`/forms/${id}/success`);
+      // Reset form
+      setFormData({});
+      setIsReviewing(false);
     } catch (err) {
-      setError('Failed to submit form. Please try again.');
-      console.error('Error submitting form:', err);
+      console.error('Failed to submit form:', err);
+      setError('Failed to submit form. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -415,7 +406,6 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
                 ...field,
                 value: formData[field.id] || '',
               }}
-              mode={isReviewing ? 'edit' : 'display'}
               onChange={(value) =>
                 setFormData((prev) => ({
                   ...prev,

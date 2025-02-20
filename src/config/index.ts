@@ -3,7 +3,7 @@ declare global {
   interface ImportMetaEnv {
     VITE_ENVIRONMENT?: 'local-ui' | 'local-dev' | 'staging' | 'production';
     VITE_API_URL?: string;
-    MODE: 'development' | 'production';
+    MODE: string;
   }
 }
 
@@ -114,23 +114,12 @@ const configs: Record<Environment, AppConfig> = {
 
 // Determine the current environment
 function getCurrentEnvironment(): Environment {
-  // Check for explicit environment variable
-  const envFromVar = import.meta.env.VITE_ENVIRONMENT as Environment;
-  if (envFromVar && envFromVar in configs) {
-    return envFromVar;
-  }
-
-  // Check the hostname
-  const hostname = window.location.hostname;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // Check if we're running against a local backend
-    return import.meta.env.VITE_API_URL ? 'local-dev' : 'local-ui';
-  }
-  if (hostname.includes('staging')) {
-    return 'staging';
+  // For development, default to local-ui if not specified
+  if (import.meta.env.MODE === 'development' && !import.meta.env.VITE_ENVIRONMENT) {
+    return 'local-ui';
   }
   
-  return 'production';
+  return (import.meta.env.VITE_ENVIRONMENT || 'local-ui') as Environment;
 }
 
 // Export the current configuration

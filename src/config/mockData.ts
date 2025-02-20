@@ -1,4 +1,4 @@
-import type { Form, Field, FieldOption, FieldType, FormStatus } from '../schemas/form';
+import type { Form, Field, FieldOption, FieldType, FormStatus, FormScope } from '../schemas/form';
 import type { FormResponse, FormAnalytics } from '../schemas/form';
 
 // Helper functions
@@ -71,15 +71,17 @@ const sampleFields: Field[] = [
 // Generate a mock form
 const generateMockForm = (index: number): Form => {
   const status: FormStatus = Math.random() > 0.7 ? 'draft' : 'published';
+  const scope: FormScope = Math.random() > 0.5 ? 'personal' : 'team';
   return {
     id: generateId(),
-    title: `Sample Form ${index}`,
-    description: 'This is a sample form for testing purposes.',
-    createdAt: randomDate(new Date(2023, 0, 1), new Date()).toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-1',
+    title: `Form ${index + 1}`,
+    description: `Description for Form ${index + 1}`,
+    createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    userId: '1',
     fields: sampleFields.slice(0, Math.floor(Math.random() * 4) + 3),
     status,
+    scope,
     responseCount: Math.floor(Math.random() * 100),
   };
 };
@@ -122,8 +124,13 @@ export const mockResponses: Record<string, FormResponse[]> = mockForms.reduce((a
 // Generate mock analytics for a form
 const generateMockAnalytics = (form: Form): FormAnalytics => ({
   totalResponses: form.responseCount,
-  averageCompletionTime: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
   completionRate: Math.random() * 0.3 + 0.7, // 70-100%
+  voiceAdoptionRate: Math.random() * 0.4 + 0.6, // 60-100%
+  averageCompletionTime: {
+    total: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
+    voice: Math.floor(Math.random() * 180) + 30, // 0.5-3.5 minutes
+    manual: Math.floor(Math.random() * 420) + 60, // 1-8 minutes
+  },
   responseTimeline: Array.from({ length: 30 }, (_, i) => ({
     date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     count: Math.floor(Math.random() * 10),
@@ -131,7 +138,9 @@ const generateMockAnalytics = (form: Form): FormAnalytics => ({
   fieldCompletion: form.fields.map(field => ({
     fieldId: field.id,
     completionRate: Math.random() * 0.2 + 0.8, // 80-100%
+    voiceUsageRate: Math.random() * 0.4 + 0.6, // 60-100%
   })),
+  activeForms7d: Math.floor(Math.random() * form.responseCount * 0.3), // ~30% of total responses in last 7 days
 });
 
 // Generate mock analytics for all forms
