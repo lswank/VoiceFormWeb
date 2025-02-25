@@ -1,4 +1,5 @@
 import { useState, useCallback, ReactNode, ElementType } from 'react';
+import { useFeatures } from '../contexts/FeatureContext';
 
 interface Position {
   x: number;
@@ -22,9 +23,20 @@ export function Hoverable3D<T extends ElementType = 'div'>({
   as,
   ...props 
 }: Hoverable3DProps<T>) {
+  const { features } = useFeatures();
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [rotation, setRotation] = useState<Position>({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+
+  // If parallax is disabled, render without effects
+  if (!features.enableParallax) {
+    const Component = as || 'div';
+    return (
+      <Component {...props} className={`relative block ${className}`}>
+        {children}
+      </Component>
+    );
+  }
 
   // Scale the effect based on intensity
   const intensityMap = {

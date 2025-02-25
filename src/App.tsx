@@ -12,7 +12,9 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
 import { Billing } from './pages/Billing';
+import { FeatureToggles } from './pages/FeatureToggles';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { FeatureProvider } from './contexts/FeatureContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Toaster } from 'react-hot-toast';
@@ -82,6 +84,7 @@ function AppRoutes() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="billing" element={<Billing />} />
+                <Route path="features" element={<FeatureToggles />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </AppLayout>
@@ -97,10 +100,12 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <Elements stripe={stripePromise}>
-        <AppRoutes />
-        <Toaster position="top-right" />
-      </Elements>
+      <FeatureProvider>
+        <Elements stripe={stripePromise}>
+          <AppRoutes />
+          <Toaster position="top-right" />
+        </Elements>
+      </FeatureProvider>
     </AuthProvider>
   );
 }

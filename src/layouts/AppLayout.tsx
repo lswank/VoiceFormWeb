@@ -8,6 +8,7 @@ import {
   DocumentTextIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  BeakerIcon,
 } from '@heroicons/react/24/outline';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -20,6 +21,9 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
   { name: 'Forms', href: '/forms', icon: DocumentTextIcon },
 ];
+
+// Admin navigation items
+// Removed from main navigation
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -83,6 +87,15 @@ export function AppLayout({ children }: AppLayoutProps) {
           href: '/forms/new',
         });
       }
+    }
+    
+    // Add feature toggles section if we're in features
+    if (pathSegments[0] === 'features') {
+      items.push({
+        name: 'Feature Toggles',
+        href: '/features',
+        icon: BeakerIcon,
+      });
     }
     
     return items;
@@ -153,6 +166,15 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Feature Toggle Button */}
+              <Link
+                to="/features"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-secondary-400 hover:bg-secondary-100 hover:text-accent-purple-500 focus:outline-none focus:ring-2 focus:ring-accent-purple-500 dark:text-secondary-500 dark:hover:bg-secondary-700 dark:hover:text-accent-purple-400 dark:focus:ring-accent-purple-400"
+                aria-label="Feature Toggles"
+              >
+                <BeakerIcon className="h-5 w-5" />
+              </Link>
+              
               <ThemeToggle />
               <Menu as="div" className="relative">
                 <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-secondary-800 dark:focus:ring-primary-400 dark:focus:ring-offset-secondary-900">
