@@ -9,6 +9,17 @@ import {
   ListBulletIcon,
   Square2StackIcon,
   MicrophoneIcon,
+  PhoneIcon,
+  GlobeAltIcon,
+  RadioIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  ArrowsPointingOutIcon,
+  ClockIcon,
+  CalendarDaysIcon,
+  CurrencyDollarIcon,
+  MapPinIcon,
+  StarIcon,
 } from '@heroicons/react/24/outline';
 import { twMerge } from 'tailwind-merge';
 import { Hoverable3D } from '../Hoverable3D';
@@ -62,6 +73,78 @@ const fieldTypes: FieldTypeOption[] = [
     label: 'Voice Input',
     icon: MicrophoneIcon,
     description: 'Voice recording input',
+  },
+  {
+    type: 'phone',
+    label: 'Phone',
+    icon: PhoneIcon,
+    description: 'Phone number input',
+  },
+  {
+    type: 'url',
+    label: 'URL',
+    icon: GlobeAltIcon,
+    description: 'Website URL input',
+  },
+  {
+    type: 'radio',
+    label: 'Radio Buttons',
+    icon: RadioIcon,
+    description: 'Single choice selection',
+  },
+  {
+    type: 'checkbox',
+    label: 'Checkbox',
+    icon: CheckIcon,
+    description: 'Yes/No checkbox',
+  },
+  {
+    type: 'checkbox-group',
+    label: 'Checkbox Group',
+    icon: CheckCircleIcon,
+    description: 'Multiple checkbox selection',
+  },
+  {
+    type: 'toggle',
+    label: 'Toggle Switch',
+    icon: ArrowsPointingOutIcon,
+    description: 'On/Off toggle switch',
+  },
+  {
+    type: 'time',
+    label: 'Time',
+    icon: ClockIcon,
+    description: 'Time selector',
+  },
+  {
+    type: 'datetime',
+    label: 'Date & Time',
+    icon: CalendarDaysIcon,
+    description: 'Date and time selection',
+  },
+  {
+    type: 'slider',
+    label: 'Slider',
+    icon: ArrowsPointingOutIcon,
+    description: 'Range slider control',
+  },
+  {
+    type: 'star-rating',
+    label: 'Star Rating',
+    icon: StarIcon,
+    description: 'Star rating selector',
+  },
+  {
+    type: 'address',
+    label: 'Address',
+    icon: MapPinIcon,
+    description: 'Complete address form',
+  },
+  {
+    type: 'currency',
+    label: 'Currency',
+    icon: CurrencyDollarIcon,
+    description: 'Monetary amount input',
   },
 ];
 

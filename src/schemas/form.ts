@@ -18,6 +18,16 @@ export const fieldTypeSchema = z.enum([
   'voice',
   'phone',
   'textarea',
+  'url',
+  'radio',
+  'checkbox',
+  'checkbox-group',
+  'toggle',
+  'datetime',
+  'slider',
+  'star-rating',
+  'address',
+  'currency',
 ]);
 
 // Field schema

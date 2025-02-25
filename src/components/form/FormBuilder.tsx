@@ -179,12 +179,47 @@ export function FormBuilder({
   const handleAddField = (type: FieldType) => {
     if (readOnly) return;
     
-    const newField: FieldConfig = {
-      id: `field-${fieldIdCounter++}`,
+    const fieldId = `field-${fieldIdCounter++}`;
+    
+    let newField: FieldConfig = {
+      id: fieldId,
       type,
       label: `New ${type} field`,
       required: false,
     };
+
+    // Add field-specific properties based on type
+    switch(type) {
+      case 'radio':
+      case 'select':
+      case 'multiselect':
+      case 'checkbox-group':
+        newField.options = [
+          { value: 'option1', label: 'Option 1' },
+          { value: 'option2', label: 'Option 2' },
+          { value: 'option3', label: 'Option 3' },
+        ];
+        break;
+      case 'slider':
+        newField.min = 0;
+        newField.max = 100;
+        newField.step = 1;
+        newField.value = '50';
+        break;
+      case 'checkbox':
+      case 'toggle':
+        newField.value = 'false';
+        break;
+      case 'star-rating':
+        newField.value = '0';
+        break;
+      case 'address':
+        newField.value = { street: '', city: '', state: '', zip: '', country: '' };
+        break;
+      case 'currency':
+        newField.placeholder = '0.00';
+        break;
+    }
 
     setFormConfig(prev => ({
       ...prev,
