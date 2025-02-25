@@ -1,29 +1,29 @@
 import { glob } from 'glob';
-import * as ts from 'typescript';
-import * as path from 'path';
+import { readFile } from 'fs/promises';
+import typescript from 'typescript';
 
 interface ValidationResult {
   file: string;
   issues: string[];
 }
 
-function validateFile(filePath: string): ValidationResult {
+async function validateFile(filePath: string): Promise<ValidationResult> {
   const issues: string[] = [];
-  const sourceFile = ts.createSourceFile(
+  const sourceFile = typescript.createSourceFile(
     filePath,
-    require('fs').readFileSync(filePath, 'utf8'),
-    ts.ScriptTarget.Latest,
+    await readFile(filePath, 'utf8'),
+    typescript.ScriptTarget.Latest,
     true
   );
 
-  function visit(node: ts.Node) {
+  function visit(node: typescript.Node) {
     // Check for API calls without validation
-    if (ts.isCallExpression(node) && 
-        ts.isPropertyAccessExpression(node.expression) &&
-        ts.isIdentifier(node.expression.name) &&
+    if (typescript.isCallExpression(node) && 
+        typescript.isPropertyAccessExpression(node.expression) &&
+        typescript.isIdentifier(node.expression.name) &&
         node.expression.name.text === 'json') {
       const parent = node.parent;
-      if (parent && ts.isAwaitExpression(parent)) {
+      if (parent && typescript.isAwaitExpression(parent)) {
         const grandParent = parent.parent;
         if (grandParent && !isValidated(grandParent)) {
           issues.push(`API response at ${node.getStart()} is not validated`);
@@ -32,39 +32,39 @@ function validateFile(filePath: string): ValidationResult {
     }
 
     // Check for direct type usage instead of Zod-derived types
-    if (ts.isTypeReferenceNode(node)) {
+    if (typescript.isTypeReferenceNode(node)) {
       const typeName = node.typeName.getText();
       if (['Form', 'User', 'FormResponse', 'FormAnalytics'].includes(typeName)) {
         const importDecl = findImportDeclaration(sourceFile, typeName);
-        if (importDecl && !importDecl.moduleSpecifier.text.includes('schemas')) {
+        if (importDecl && typescript.isStringLiteral(importDecl.moduleSpecifier) && !importDecl.moduleSpecifier.text.includes('schemas')) {
           issues.push(`Type ${typeName} should be imported from schemas`);
         }
       }
     }
 
-    ts.forEachChild(node, visit);
+    typescript.forEachChild(node, visit);
   }
 
   visit(sourceFile);
   return { file: filePath, issues };
 }
 
-function isValidated(node: ts.Node): boolean {
-  if (ts.isCallExpression(node)) {
+function isValidated(node: typescript.Node): boolean {
+  if (typescript.isCallExpression(node)) {
     const callName = node.expression.getText();
     return callName.includes('validate') || callName.includes('parse');
   }
   return false;
 }
 
-function findImportDeclaration(sourceFile: ts.SourceFile, typeName: string): ts.ImportDeclaration | undefined {
-  let result: ts.ImportDeclaration | undefined;
+function findImportDeclaration(sourceFile: typescript.SourceFile, typeName: string): typescript.ImportDeclaration | undefined {
+  let result: typescript.ImportDeclaration | undefined;
   
-  ts.forEachChild(sourceFile, node => {
-    if (ts.isImportDeclaration(node)) {
+  typescript.forEachChild(sourceFile, node => {
+    if (typescript.isImportDeclaration(node)) {
       const importClause = node.importClause;
       if (importClause && importClause.namedBindings) {
-        if (ts.isNamedImports(importClause.namedBindings)) {
+        if (typescript.isNamedImports(importClause.namedBindings)) {
           const hasType = importClause.namedBindings.elements.some(
             element => element.name.text === typeName
           );
@@ -81,7 +81,7 @@ function findImportDeclaration(sourceFile: ts.SourceFile, typeName: string): ts.
 
 async function main() {
   const files = await glob('src/**/*.{ts,tsx}');
-  const results = files.map(file => validateFile(file));
+  const results = await Promise.all(files.map(file => validateFile(file)));
   const hasIssues = results.some(result => result.issues.length > 0);
 
   results.forEach(result => {
@@ -99,4 +99,4 @@ async function main() {
 main().catch(error => {
   console.error(error);
   process.exit(1);
-}); 
+});                        
