@@ -18,6 +18,7 @@ import {
   ArchiveBoxIcon,
   DocumentCheckIcon,
   UsersIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
@@ -232,6 +233,10 @@ export function FormDetails() {
     }
   };
 
+  const handlePreview = () => {
+    window.open(`/respond/form-1`, '_blank');
+  };
+
   const statusDialogConfigs = {
     publish: {
       title: 'Publish Form',
@@ -372,6 +377,14 @@ export function FormDetails() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={handlePreview}
+          >
+            <EyeIcon className="-ml-1 mr-2 h-5 w-5" />
+            Preview
+          </Button>
+
           {form.status === 'draft' && (
             <Button
               onClick={() => setStatusDialog({ show: true, type: 'publish' })}

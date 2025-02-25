@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Field, type FieldConfig } from '../components/form/Field';
 import { Button } from '../components/Button';
 import { MicrophoneIcon, PauseIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -9,6 +9,7 @@ import { formService, type Form } from '../services/formService';
 import { aiService } from '../services/aiService';
 import { emailService } from '../services/emailService';
 import { AudioWaveform } from '../components/AudioWaveform';
+import toast from 'react-hot-toast';
 
 // Mock form data
 const mockForm = {
@@ -142,7 +143,9 @@ interface RespondentInterfaceProps {
 }
 
 export function RespondentInterface({ form: propForm, isPreview = false }: RespondentInterfaceProps) {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const isPreviewMode = isPreview || searchParams.get('preview') === 'true';
   const navigate = useNavigate();
   const [form, setForm] = useState<Form | null>(propForm || null);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -170,7 +173,7 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
   // Fetch form data if not in preview mode
   useEffect(() => {
     const fetchForm = async () => {
-      if (!id || isPreview) return;
+      if (!id || isPreviewMode) return;
 
       try {
         const data = await formService.getForm(id);
@@ -194,7 +197,7 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
     };
 
     fetchForm();
-  }, [id, isPreview]);
+  }, [id, isPreviewMode]);
 
   // Initialize form data when form is provided (preview mode)
   useEffect(() => {
@@ -296,13 +299,18 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
   };
 
   const handleSubmit = async () => {
+    if (isPreviewMode) {
+      toast.success('Form submission simulated in preview mode');
+      return;
+    }
+    
     if (!form) return;
     setIsSubmitting(true);
     
     try {
       await formService.submitFormResponse(form.id, formData);
 
-      if (!isPreview) {
+      if (!isPreviewMode) {
         // Send confirmation email
         const emailField = form.fields.find(f => f.type === 'email');
         if (emailField?.id && formData[emailField.id]) {
@@ -358,7 +366,7 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
             {form.description}
           </p>
         )}
-        {isPreview && (
+        {isPreviewMode && (
           <div className="mt-2 rounded-md bg-secondary-50 p-2 dark:bg-secondary-800">
             <p className="text-sm text-secondary-600 dark:text-secondary-400">
               Preview Mode - Try the voice input feature!
@@ -431,9 +439,9 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
               </Button>
               <Button 
                 onClick={handleSubmit} 
-                disabled={isSubmitting || isPreview}
+                disabled={isSubmitting || isPreviewMode}
               >
-                {isPreview ? 'Preview Mode' : isSubmitting ? 'Submitting...' : 'Submit'}
+                {isPreviewMode ? 'Preview Mode' : isSubmitting ? 'Submitting...' : 'Submit'}
               </Button>
             </>
           ) : (
