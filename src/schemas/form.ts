@@ -28,6 +28,7 @@ export const fieldTypeSchema = z.enum([
   'star-rating',
   'address',
   'currency',
+  'captcha',
 ]);
 
 // Field schema

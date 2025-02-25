@@ -305,6 +305,26 @@ export function RespondentInterface({ form: propForm, isPreview = false }: Respo
     }
     
     if (!form) return;
+    
+    // Validate any captcha fields
+    const captchaField = form.fields.find(f => f.type === 'captcha');
+    if (captchaField?.id) {
+      const captchaValue = formData[captchaField.id];
+      // In a real implementation, you would verify the captcha with a service
+      // This is a simplified mock validation
+      if (!captchaValue || captchaValue.trim() === '') {
+        toast.error('Please complete the CAPTCHA verification');
+        return;
+      }
+      
+      // For demo purposes, we'll use a simple fixed value check
+      // In reality, you would validate against the server
+      if (captchaValue !== 'X7A9P2' && !isPreviewMode) {
+        toast.error('CAPTCHA verification failed. Please try again.');
+        return;
+      }
+    }
+    
     setIsSubmitting(true);
     
     try {

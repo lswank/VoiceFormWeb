@@ -454,6 +454,50 @@ export function Field({
           </div>
         );
       
+      case 'captcha':
+        return (
+          <div className="border border-secondary-300 rounded-md p-4 bg-white dark:bg-secondary-800 dark:border-secondary-700">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-primary-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-sm font-medium">CAPTCHA Verification</span>
+              </div>
+              {!readOnly && (
+                <button
+                  type="button"
+                  className="text-secondary-400 hover:text-secondary-500 dark:text-secondary-500 dark:hover:text-secondary-400"
+                  onClick={() => onChange?.('refreshed')}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <div className="bg-secondary-100 dark:bg-secondary-700 rounded p-2 mb-3 text-center">
+              <div className="select-none font-mono text-lg tracking-wider text-secondary-800 dark:text-secondary-200" 
+                   style={{ fontFamily: 'monospace', letterSpacing: '0.2em' }}>
+                {readOnly ? '••••••' : 'X7A9P2'}
+              </div>
+            </div>
+            {!readOnly && (
+              <Input
+                type="text" 
+                value={config.value || ''}
+                onChange={(e) => onChange?.(e.target.value)}
+                placeholder="Enter the code above"
+                className={className}
+                disabled={readOnly}
+              />
+            )}
+            <div className="text-xs text-secondary-500 mt-2">
+              Please enter the characters you see in the image above to verify you are human.
+            </div>
+          </div>
+        );
+      
       default:
         return (
           <Input

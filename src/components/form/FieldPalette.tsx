@@ -20,6 +20,7 @@ import {
   CurrencyDollarIcon,
   MapPinIcon,
   StarIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import { twMerge } from 'tailwind-merge';
 import { Hoverable3D } from '../Hoverable3D';
@@ -145,6 +146,12 @@ const fieldTypes: FieldTypeOption[] = [
     label: 'Currency',
     icon: CurrencyDollarIcon,
     description: 'Monetary amount input',
+  },
+  {
+    type: 'captcha',
+    label: 'CAPTCHA',
+    icon: ShieldCheckIcon,
+    description: 'Human verification',
   },
 ];
 

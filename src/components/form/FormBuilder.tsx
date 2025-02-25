@@ -204,20 +204,23 @@ export function FormBuilder({
         newField.min = 0;
         newField.max = 100;
         newField.step = 1;
-        newField.value = '50';
         break;
       case 'checkbox':
       case 'toggle':
         newField.value = 'false';
         break;
       case 'star-rating':
-        newField.value = '0';
+        newField.max = 5;
         break;
       case 'address':
         newField.value = { street: '', city: '', state: '', zip: '', country: '' };
         break;
       case 'currency':
-        newField.placeholder = '0.00';
+        newField.value = '';
+        break;
+      case 'captcha':
+        newField.helpText = 'Please complete this captcha to verify you are human.';
+        newField.label = 'CAPTCHA Verification';
         break;
     }
 
