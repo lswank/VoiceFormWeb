@@ -123,7 +123,7 @@ interface FieldPaletteProps {
 
 export function FieldPalette({ onSelect }: FieldPaletteProps) {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="flex flex-col space-y-2">
       {fieldTypes.map((fieldType) => (
         <Hoverable3D
           key={fieldType.type}
@@ -131,9 +131,9 @@ export function FieldPalette({ onSelect }: FieldPaletteProps) {
           type="button"
           onClick={() => onSelect(fieldType.type)}
           intensity="medium"
-          className="flex items-start gap-3 rounded-lg border border-secondary-200 bg-white p-4 text-left transition-all hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
+          className="flex w-full items-start gap-3 rounded-lg border border-secondary-200 bg-white p-3 text-left transition-all hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
         >
-          <fieldType.icon className="h-6 w-6 text-secondary-400 transition-colors group-hover:text-primary-500 dark:text-secondary-500 dark:group-hover:text-primary-400" />
+          <fieldType.icon className="h-5 w-5 text-secondary-400 transition-colors group-hover:text-primary-500 dark:text-secondary-500 dark:group-hover:text-primary-400" />
           <div>
             <p className="text-sm font-medium text-secondary-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
               {fieldType.label}

@@ -3,10 +3,17 @@ import {
   DndContext,
   DragEndEvent,
   closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { type FieldConfig, type FieldType } from './Field';
 import { FieldPalette } from './FieldPalette';
@@ -14,6 +21,7 @@ import { Button } from '../Button';
 import { Input } from '../Input';
 import type { Form } from '../../schemas/form';
 import { SortableField } from './SortableField';
+import { Field } from './Field';
 
 interface FormConfig {
   title: string;
@@ -33,6 +41,7 @@ interface FormBuilderProps {
   form?: Form;
   readOnly?: boolean;
   onChange?: (form: Form) => void;
+  hideAddField?: boolean;
 }
 
 function generateId(): string {
@@ -43,7 +52,7 @@ function generateId(): string {
   });
 }
 
-export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderProps) {
+export function FormBuilder({ form, readOnly = false, onChange, hideAddField = false }: FormBuilderProps) {
   const [formConfig, setFormConfig] = useState<FormConfig>(() => {
     if (!form) return initialForm;
     
@@ -59,6 +68,23 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
       })),
     };
   });
+
+  // Add state for active dragging
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeField = activeId ? formConfig.fields.find(field => field.id === activeId) : null;
+
+  // Configure sensors for drag detection
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      // Require the mouse to move 8px before activating
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Update internal state when form prop changes
   useEffect(() => {
@@ -97,7 +123,14 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
     }
   }, [formConfig, form, onChange]);
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    
     if (readOnly) return;
     
     const { active, over } = event;
@@ -154,7 +187,7 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
   return (
     <div className="space-y-6">
       {/* Field Palette */}
-      {!readOnly && (
+      {!readOnly && !hideAddField && (
         <div className="rounded-lg bg-secondary-50 p-4 dark:bg-secondary-800">
           <h3 className="text-sm font-medium text-secondary-900 dark:text-white">
             Add Field
@@ -165,8 +198,9 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
 
       {/* Form Fields */}
       <DndContext
-        sensors={[]}
+        sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
@@ -185,6 +219,19 @@ export function FormBuilder({ form, readOnly = false, onChange }: FormBuilderPro
             ))}
           </div>
         </SortableContext>
+
+        {/* Drag Overlay for visual feedback */}
+        <DragOverlay adjustScale style={{ transformOrigin: '0 0' }}>
+          {activeField ? (
+            <div className="rounded-lg border border-primary-500 bg-white shadow-lg dark:bg-secondary-800">
+              <Field
+                config={activeField}
+                onChange={() => {}}
+                readOnly={true}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       {/* Empty State */}
