@@ -118,7 +118,7 @@ function RecentForms({ formsWithAnalytics }: { formsWithAnalytics: FormWithAnaly
     .slice(0, 5);
 
   return (
-    <div className="card-gradient">
+    <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-secondary-800">
       <div className="p-6">
         <h3 className="text-base font-semibold leading-6 text-secondary-900 dark:text-white">
           Recent Forms
@@ -127,26 +127,27 @@ function RecentForms({ formsWithAnalytics }: { formsWithAnalytics: FormWithAnaly
           <ul className="-my-5 divide-y divide-secondary-200 dark:divide-secondary-700">
             {recentForms.map(({ form, analytics }) => (
               <li key={form.id} className="py-5">
-                <Hoverable3D 
-                  intensity="small" 
-                  shadowOpacity={0.05}
-                  className="group relative focus-within:ring-2 focus-within:ring-primary-500"
-                >
-                  <div className="relative">
-                    <h3 className="text-sm font-semibold text-secondary-800 dark:text-secondary-200">
-                      <Link to={`/forms/${form.id}`} className="hover:underline focus:outline-none">
-                        <span className="absolute inset-0" aria-hidden="true" />
-                        {form.title}
-                      </Link>
-                    </h3>
-                    <div className="mt-1 flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
-                      <CalendarIcon className="h-4 w-4 transition-colors group-hover:text-primary-500 dark:group-hover:text-primary-400" />
-                      <span>Updated {new Date(form.updatedAt).toLocaleDateString()}</span>
-                      <span className="mx-1">•</span>
-                      <span>{analytics.totalResponses} responses</span>
+                <Link to={`/forms/${form.id}`} className="block hover:bg-secondary-50 dark:hover:bg-secondary-700/50 rounded-md transition-colors">
+                  <Hoverable3D 
+                    intensity="small" 
+                    shadowOpacity={0.05}
+                    className="group relative focus-within:ring-2 focus-within:ring-primary-500"
+                  >
+                    <div className="relative">
+                      <h3 className="text-sm font-semibold text-secondary-800 dark:text-secondary-200">
+                        <span className="hover:underline focus:outline-none">
+                          {form.title}
+                        </span>
+                      </h3>
+                      <div className="mt-1 flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
+                        <CalendarIcon className="h-4 w-4 transition-colors group-hover:text-primary-500 dark:group-hover:text-primary-400" />
+                        <span>Updated {new Date(form.updatedAt).toLocaleDateString()}</span>
+                        <span className="mx-1">•</span>
+                        <span>{analytics.totalResponses} responses</span>
+                      </div>
                     </div>
-                  </div>
-                </Hoverable3D>
+                  </Hoverable3D>
+                </Link>
               </li>
             ))}
           </ul>
@@ -183,24 +184,26 @@ function RecentActivity({ formsWithAnalytics }: { formsWithAnalytics: FormWithAn
           <ul className="-my-5 divide-y divide-secondary-200 dark:divide-secondary-700">
             {recentActivity.map((activity) => (
               <li key={activity.id} className="py-5">
-                <Hoverable3D 
-                  intensity="small" 
-                  shadowOpacity={0.05}
-                  className="relative focus-within:ring-2 focus-within:ring-primary-500"
-                >
-                  <div className="relative">
-                    <h3 className="text-sm font-semibold text-secondary-800 dark:text-secondary-200">
-                      {activity.count} new {activity.count === 1 ? 'response' : 'responses'} for{' '}
-                      <Link to={`/forms/${activity.formId}`} className="hover:underline focus:outline-none">
-                        {activity.formTitle}
-                      </Link>
-                    </h3>
-                    <div className="mt-1 flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
-                      <ClockIcon className="h-4 w-4" />
-                      <span>{new Date(activity.timestamp).toLocaleString()}</span>
+                <Link to={`/forms/${activity.formId}`} className="block hover:bg-secondary-50 dark:hover:bg-secondary-700/50 rounded-md transition-colors">
+                  <Hoverable3D 
+                    intensity="small" 
+                    shadowOpacity={0.05}
+                    className="group relative focus-within:ring-2 focus-within:ring-primary-500"
+                  >
+                    <div className="relative">
+                      <h3 className="text-sm font-semibold text-secondary-800 dark:text-secondary-200">
+                        <span className="hover:underline focus:outline-none">
+                          {activity.count} new {activity.count === 1 ? 'response' : 'responses'} for{' '}
+                          {activity.formTitle}
+                        </span>
+                      </h3>
+                      <div className="mt-1 flex items-center gap-x-2 text-sm text-secondary-500 dark:text-secondary-400">
+                        <ClockIcon className="h-4 w-4 transition-colors group-hover:text-primary-500 dark:group-hover:text-primary-400" />
+                        <span>{new Date(activity.timestamp).toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
-                </Hoverable3D>
+                  </Hoverable3D>
+                </Link>
               </li>
             ))}
           </ul>
