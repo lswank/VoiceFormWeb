@@ -2,12 +2,14 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Field, type FieldConfig } from './Field';
 import { TrashIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 
 interface SortableFieldProps {
   field: FieldConfig;
   onUpdate: (fieldId: string, updates: Partial<FieldConfig>) => void;
   onRemove: (fieldId: string) => void;
   readOnly?: boolean;
+  isHighlighted?: boolean;
 }
 
 export function SortableField({
@@ -15,6 +17,7 @@ export function SortableField({
   onUpdate,
   onRemove,
   readOnly = false,
+  isHighlighted = false,
 }: SortableFieldProps) {
   const {
     attributes,
@@ -33,14 +36,28 @@ export function SortableField({
     transition,
   };
 
+  // Add a highlight animation effect
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  useEffect(() => {
+    if (isHighlighted) {
+      setIsFlashing(true);
+      const timer = setTimeout(() => setIsFlashing(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isHighlighted]);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
+      id={`field-container-${field.id}`}
       className={`relative rounded-lg border ${
         isDragging 
           ? 'border-primary-500 shadow-lg dark:border-primary-400 opacity-50 z-10 bg-primary-50 dark:bg-primary-900/20' 
-          : 'border-secondary-200 bg-white dark:border-secondary-700 dark:bg-secondary-800'
+          : isFlashing
+            ? 'border-primary-500 shadow-lg dark:border-primary-400 bg-primary-50/50 dark:bg-primary-900/20 transition-colors duration-500'
+            : 'border-secondary-200 bg-white dark:border-secondary-700 dark:bg-secondary-800'
       } p-4 ${!readOnly ? 'group' : ''}`}
     >
       {!readOnly && (

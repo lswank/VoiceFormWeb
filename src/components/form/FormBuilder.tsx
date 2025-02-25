@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -42,6 +42,8 @@ interface FormBuilderProps {
   readOnly?: boolean;
   onChange?: (form: Form) => void;
   hideAddField?: boolean;
+  newlyAddedFieldId?: string | null;
+  onFieldFocused?: () => void;
 }
 
 function generateId(): string {
@@ -52,7 +54,14 @@ function generateId(): string {
   });
 }
 
-export function FormBuilder({ form, readOnly = false, onChange, hideAddField = false }: FormBuilderProps) {
+export function FormBuilder({ 
+  form, 
+  readOnly = false, 
+  onChange, 
+  hideAddField = false,
+  newlyAddedFieldId = null,
+  onFieldFocused = () => {}
+}: FormBuilderProps) {
   const [formConfig, setFormConfig] = useState<FormConfig>(() => {
     if (!form) return initialForm;
     
@@ -85,6 +94,25 @@ export function FormBuilder({ form, readOnly = false, onChange, hideAddField = f
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Scroll to newly added field when it changes
+  useEffect(() => {
+    if (newlyAddedFieldId) {
+      // Use requestAnimationFrame to wait for next render cycle
+      requestAnimationFrame(() => {
+        const fieldElement = document.getElementById(`field-container-${newlyAddedFieldId}`);
+        if (fieldElement) {
+          fieldElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+          
+          // Call the callback to reset the newly added field ID
+          onFieldFocused();
+        }
+      });
+    }
+  }, [newlyAddedFieldId, onFieldFocused]);
 
   // Update internal state when form prop changes
   useEffect(() => {
@@ -215,6 +243,7 @@ export function FormBuilder({ form, readOnly = false, onChange, hideAddField = f
                 onUpdate={handleUpdateField}
                 onRemove={handleRemoveField}
                 readOnly={readOnly}
+                isHighlighted={field.id === newlyAddedFieldId}
               />
             ))}
           </div>

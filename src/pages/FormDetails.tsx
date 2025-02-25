@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FormBuilder } from '../components/form/FormBuilder';
@@ -173,6 +173,7 @@ export function FormDetails() {
     show: false,
     type: 'publish',
   });
+  const [newlyAddedFieldId, setNewlyAddedFieldId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -346,6 +347,8 @@ export function FormDetails() {
                       formService.updateForm(form.id, {...form, fields: updatedFields})
                         .then(() => {
                           mutate({...form, fields: updatedFields});
+                          // Set the newly added field ID
+                          setNewlyAddedFieldId(newField.id);
                         })
                         .catch(err => {
                           console.error('Failed to add field:', err);
@@ -362,6 +365,8 @@ export function FormDetails() {
                 form={form} 
                 readOnly={form.status === 'published'} 
                 hideAddField={true}
+                newlyAddedFieldId={newlyAddedFieldId}
+                onFieldFocused={() => setNewlyAddedFieldId(null)}
               />
             </div>
           </div>
