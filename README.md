@@ -11,6 +11,37 @@ VoiceForm is a modern web application that enables voice-powered form filling, m
 - Authentication with email/password and SSO
 - Responsive design with Tailwind CSS
 
+## API Documentation
+
+The API follows RESTful conventions and is documented using OpenAPI 3.0.3.
+
+Full API documentation is available in:
+- [docs/api/openapi.yaml](docs/api/openapi.yaml)
+
+### Key API Endpoints
+
+#### Authentication
+- POST /auth/login - Log in with email and password
+- POST /auth/register - Register a new user
+- POST /auth/sso/{provider} - Authenticate using SSO provider (Google, Microsoft)
+- POST /auth/logout - Log out the current user
+
+#### Forms
+- GET /forms - Get all forms for the authenticated user
+- GET /forms/{id} - Get a specific form by ID
+- POST /forms - Create a new form
+- PATCH /forms/{id} - Update a form
+- POST /forms/{id}/clone - Clone an existing form
+
+#### Form Responses
+- GET /forms/{formId}/responses - Get responses for a specific form
+- POST /forms/{formId}/responses - Submit a form response
+
+#### AI Services
+- POST /ai/process - Process voice input for form field
+- POST /ai/clarify - Generate clarification prompts
+- POST /ai/validate - Validate field response
+
 ## Tech Stack
 
 - React 18
@@ -147,6 +178,17 @@ REACT_APP_ENVIRONMENT=local-dev REACT_APP_API_URL=http://localhost:3001 npm star
 
 4. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+### Mock API Server
+
+For development, a mock API server is provided that implements all the endpoints defined in the OpenAPI spec.
+
+To use the mock server, set the environment variable:
+```
+VITE_USE_MOCK_API=true
+```
+
+The mock server is implemented using MirageJS and automatically intercepts API calls in development mode.
+
 ### Building for Production
 
 ```bash
@@ -159,13 +201,14 @@ This will create an optimized production build in the `build` folder.
 
 ```
 src/
-├── components/     # Reusable UI components
-├── pages/         # Page components
-├── layouts/       # Layout components
-├── hooks/         # Custom React hooks
-├── utils/         # Utility functions
-├── types/         # TypeScript types
-└── assets/        # Static assets
+├── api/          # API client modules
+├── components/   # Reusable UI components
+├── pages/        # Page components
+├── layouts/      # Layout components
+├── hooks/        # Custom React hooks
+├── utils/        # Utility functions
+├── types/        # TypeScript types
+└── assets/       # Static assets
 ```
 
 ## Contributing
