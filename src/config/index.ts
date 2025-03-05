@@ -3,6 +3,7 @@ declare global {
   interface ImportMetaEnv {
     VITE_ENVIRONMENT?: 'local-ui' | 'local-dev' | 'staging' | 'production';
     VITE_API_URL?: string;
+    VITE_USE_MOCK_API?: string;
     MODE: string;
   }
 }
@@ -61,7 +62,7 @@ const configs: Record<Environment, AppConfig> = {
   },
   'local-dev': {
     environment: 'local-dev',
-    apiUrl: 'http://localhost:3001',
+    apiUrl: '/api',
     brand: defaultBrand,
     auth: {
       providers: {
@@ -114,6 +115,12 @@ const configs: Record<Environment, AppConfig> = {
 
 // Determine the current environment
 function getCurrentEnvironment(): Environment {
+  // Check if mock API is enabled - if so, use local-dev to use API calls
+  if (import.meta.env.VITE_USE_MOCK_API === 'true') {
+    console.log('Mock API enabled, using local-dev environment');
+    return 'local-dev';
+  }
+  
   // For development, default to local-ui if not specified
   if (import.meta.env.MODE === 'development' && !import.meta.env.VITE_ENVIRONMENT) {
     return 'local-ui';
