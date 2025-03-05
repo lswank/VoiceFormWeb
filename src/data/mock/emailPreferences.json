@@ -1,0 +1,37 @@
+[
+  {
+    "id": "email-pref-1",
+    "userId": "user-1",
+    "formSubmissionNotifications": true,
+    "responseNotifications": true,
+    "marketingEmails": false
+  },
+  {
+    "id": "email-pref-2",
+    "userId": "user-2",
+    "formSubmissionNotifications": true,
+    "responseNotifications": true,
+    "marketingEmails": true
+  },
+  {
+    "id": "email-pref-3",
+    "userId": "user-3",
+    "formSubmissionNotifications": true,
+    "responseNotifications": false,
+    "marketingEmails": false
+  },
+  {
+    "id": "email-pref-4",
+    "userId": "user-4",
+    "formSubmissionNotifications": false,
+    "responseNotifications": true,
+    "marketingEmails": false
+  },
+  {
+    "id": "email-pref-5",
+    "userId": "user-5",
+    "formSubmissionNotifications": true,
+    "responseNotifications": true,
+    "marketingEmails": true
+  }
+] 

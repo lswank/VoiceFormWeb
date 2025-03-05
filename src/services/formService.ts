@@ -68,7 +68,10 @@ class FormService {
 
     const response = await fetch(`${config.apiUrl}/forms/${id}`);
     const data = await response.json();
-    return validateForm(data);
+    
+    // Handle response with form property (from mock API) or direct object
+    const formData = data.form || data;
+    return validateForm(formData);
   }
 
   async getForms(): Promise<Form[]> {
@@ -78,7 +81,10 @@ class FormService {
 
     const response = await fetch(`${config.apiUrl}/forms`);
     const data = await response.json();
-    return z.array(formSchema).parse(data);
+    
+    // Handle response with forms property (from mock API) or direct array
+    const formsData = data.forms || data;
+    return z.array(formSchema).parse(formsData);
   }
 
   async getFormResponses(formId: string): Promise<FormResponse[]> {
