@@ -1,0 +1,1323 @@
+openapi: 3.0.3
+info:
+  title: VoiceForm API
+  description: API for the VoiceForm application, allowing for voice-enabled form creation and submission
+  version: 1.0.0
+  contact:
+    name: VoiceForm Support
+    url: https://voiceform.example.com/support
+servers:
+  - url: https://api.voiceform.example.com/v1
+    description: Production server
+  - url: https://staging-api.voiceform.example.com/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: SESSION_ID
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        organizationName:
+          type: string
+        role:
+          type: string
+          enum: [admin, user]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LoginCredentials:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        name:
+          type: string
+        organizationName:
+          type: string
+
+    AuthResponse:
+      type: object
+      required:
+        - success
+        - user
+      properties:
+        success:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+
+    Field:
+      type: object
+      required:
+        - id
+        - type
+        - label
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [text, number, select, radio, checkbox, textarea, date, voice, file]
+        label:
+          type: string
+        placeholder:
+          type: string
+        helpText:
+          type: string
+        required:
+          type: boolean
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              value:
+                type: string
+        validations:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              message:
+                type: string
+              params:
+                type: object
+
+    FormPermission:
+      type: object
+      required:
+        - userId
+        - role
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [owner, editor, viewer]
+
+    Form:
+      type: object
+      required:
+        - id
+        - title
+        - fields
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormPermission'
+        settings:
+          type: object
+          properties:
+            allowAnonymousResponses:
+              type: boolean
+            confirmationMessage:
+              type: string
+            redirectUrl:
+              type: string
+            sendConfirmationEmail:
+              type: boolean
+            notifyOnSubmission:
+              type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FormResponse:
+      type: object
+      required:
+        - id
+        - formId
+        - data
+      properties:
+        id:
+          type: string
+          format: uuid
+        formId:
+          type: string
+          format: uuid
+        respondentId:
+          type: string
+          format: uuid
+        data:
+          type: object
+          additionalProperties: true
+        completedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+
+    FormAnalytics:
+      type: object
+      required:
+        - formId
+        - responseCount
+      properties:
+        formId:
+          type: string
+          format: uuid
+        responseCount:
+          type: integer
+        completionRate:
+          type: number
+          format: float
+        averageCompletionTime:
+          type: integer
+        fieldCompletionRates:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+        responseTimeline:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+
+    AIProcessRequest:
+      type: object
+      required:
+        - audioData
+        - fieldContext
+      properties:
+        audioData:
+          type: string
+          format: binary
+        fieldContext:
+          $ref: '#/components/schemas/Field'
+        previousResponses:
+          type: object
+          additionalProperties: true
+
+    AIProcessResponse:
+      type: object
+      required:
+        - text
+        - confidence
+      properties:
+        text:
+          type: string
+        confidence:
+          type: number
+          format: float
+        alternatives:
+          type: array
+          items:
+            type: string
+
+    AIClarifyRequest:
+      type: object
+      required:
+        - fieldContext
+        - currentValue
+      properties:
+        fieldContext:
+          $ref: '#/components/schemas/Field'
+        currentValue:
+          type: string
+        previousResponses:
+          type: object
+          additionalProperties: true
+
+    AIClarifyResponse:
+      type: object
+      properties:
+        prompts:
+          type: array
+          items:
+            type: string
+
+    AIValidateRequest:
+      type: object
+      required:
+        - fieldContext
+        - value
+      properties:
+        fieldContext:
+          $ref: '#/components/schemas/Field'
+        value:
+          type: string
+
+    AIValidateResponse:
+      type: object
+      required:
+        - valid
+      properties:
+        valid:
+          type: boolean
+        message:
+          type: string
+
+    EmailPreferences:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        formSubmissionNotifications:
+          type: boolean
+        responseNotifications:
+          type: boolean
+        marketingEmails:
+          type: boolean
+
+    PDFExtractRequest:
+      type: object
+      required:
+        - pdfFile
+      properties:
+        pdfFile:
+          type: string
+          format: binary
+
+    PDFExtractResponse:
+      type: object
+      properties:
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      summary: Log in with email and password
+      operationId: login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginCredentials'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      operationId: register
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/sso/{provider}:
+    post:
+      summary: Authenticate using SSO provider
+      operationId: ssoLogin
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum: [google, microsoft]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Successful SSO login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid SSO credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Log out the current user
+      operationId: logout
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /auth/forgot-password:
+    post:
+      summary: Request a password reset
+      operationId: forgotPassword
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  # Form Endpoints
+  /forms:
+    get:
+      summary: Get all forms for the authenticated user
+      operationId: listForms
+      tags:
+        - Forms
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of forms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Form'
+    post:
+      summary: Create a new form
+      operationId: createForm
+      tags:
+        - Forms
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Form'
+      responses:
+        '201':
+          description: Form created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/{formId}:
+    get:
+      summary: Get a specific form by ID
+      operationId: getForm
+      tags:
+        - Forms
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Form details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Update a form
+      operationId: updateForm
+      tags:
+        - Forms
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Form'
+      responses:
+        '200':
+          description: Form updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/{formId}/clone:
+    post:
+      summary: Clone an existing form
+      operationId: cloneForm
+      tags:
+        - Forms
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Form cloned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/import:
+    post:
+      summary: Import a form from file or URL
+      operationId: importForm
+      tags:
+        - Forms
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                url:
+                  type: string
+                  format: uri
+      responses:
+        '201':
+          description: Form imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/{formId}/permissions:
+    get:
+      summary: Get form permissions
+      operationId: getFormPermissions
+      tags:
+        - Forms
+        - Permissions
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of form permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FormPermission'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update all form permissions
+      operationId: updateFormPermissions
+      tags:
+        - Forms
+        - Permissions
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FormPermission'
+      responses:
+        '200':
+          description: Permissions updated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FormPermission'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Add a new permission to a form
+      operationId: addFormPermission
+      tags:
+        - Forms
+        - Permissions
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FormPermission'
+      responses:
+        '201':
+          description: Permission added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormPermission'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/{formId}/permissions/{userId}:
+    delete:
+      summary: Remove a user's permission from a form
+      operationId: removeFormPermission
+      tags:
+        - Forms
+        - Permissions
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Permission removed successfully
+        '404':
+          description: Form or permission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/accessible/{userId}:
+    get:
+      summary: Get forms accessible to a user
+      operationId: getAccessibleForms
+      tags:
+        - Forms
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of accessible forms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Form'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Form Responses
+  /forms/{formId}/responses:
+    get:
+      summary: Get responses for a specific form
+      operationId: getFormResponses
+      tags:
+        - Responses
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of form responses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormResponse'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      pages:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Submit a form response
+      operationId: submitFormResponse
+      tags:
+        - Responses
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  additionalProperties: true
+                respondentId:
+                  type: string
+                  format: uuid
+                startedAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Response submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Analytics
+  /forms/{formId}/analytics:
+    get:
+      summary: Get analytics for a specific form
+      operationId: getFormAnalytics
+      tags:
+        - Analytics
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Form analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormAnalytics'
+        '404':
+          description: Form not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # AI Service
+  /ai/process:
+    post:
+      summary: Process voice input for form field
+      operationId: processVoiceInput
+      tags:
+        - AI
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AIProcessRequest'
+      responses:
+        '200':
+          description: Processed voice input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIProcessResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/clarify:
+    post:
+      summary: Generate clarification prompts
+      operationId: generateClarificationPrompts
+      tags:
+        - AI
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIClarifyRequest'
+      responses:
+        '200':
+          description: Generated clarification prompts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIClarifyResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/validate:
+    post:
+      summary: Validate field response
+      operationId: validateFieldResponse
+      tags:
+        - AI
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIValidateRequest'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIValidateResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Email Service
+  /email/submission-confirmation:
+    post:
+      summary: Send form submission confirmation email
+      operationId: sendSubmissionConfirmation
+      tags:
+        - Email
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - responseId
+                - email
+              properties:
+                responseId:
+                  type: string
+                  format: uuid
+                email:
+                  type: string
+                  format: email
+                formId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /email/response-notification:
+    post:
+      summary: Send form response notification email
+      operationId: sendResponseNotification
+      tags:
+        - Email
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - responseId
+                - formId
+              properties:
+                responseId:
+                  type: string
+                  format: uuid
+                formId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /email/preferences:
+    put:
+      summary: Update email notification preferences
+      operationId: updateEmailPreferences
+      tags:
+        - Email
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailPreferences'
+      responses:
+        '200':
+          description: Preferences updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailPreferences'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /email/preferences/{userId}:
+    get:
+      summary: Get email notification preferences for a user
+      operationId: getEmailPreferences
+      tags:
+        - Email
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User's email preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailPreferences'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /email/unsubscribe:
+    post:
+      summary: Unsubscribe from email notifications
+      operationId: unsubscribeEmails
+      tags:
+        - Email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                userId:
+                  type: string
+                  format: uuid
+                type:
+                  type: string
+                  enum: [all, marketing, formSubmission, responseNotification]
+      responses:
+        '200':
+          description: Successfully unsubscribed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # PDF Service
+  /pdf/extract:
+    post:
+      summary: Extract form fields from PDF
+      operationId: extractPDFFields
+      tags:
+        - PDF
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PDFExtractRequest'
+      responses:
+        '200':
+          description: Extracted fields from PDF
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PDFExtractResponse'
+        '400':
+          description: Invalid input or PDF processing failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

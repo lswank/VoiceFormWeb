@@ -1,0 +1,47 @@
+[
+  {
+    "id": "user-1",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "organizationName": "Admin Organization",
+    "role": "admin",
+    "createdAt": "2023-01-01T00:00:00.000Z",
+    "updatedAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "user-2",
+    "email": "user@example.com",
+    "name": "Regular User",
+    "organizationName": "User Organization",
+    "role": "user",
+    "createdAt": "2023-01-02T00:00:00.000Z",
+    "updatedAt": "2023-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "user-3",
+    "email": "john.doe@example.com",
+    "name": "John Doe",
+    "organizationName": "Acme Inc",
+    "role": "user",
+    "createdAt": "2023-01-03T00:00:00.000Z",
+    "updatedAt": "2023-01-03T00:00:00.000Z"
+  },
+  {
+    "id": "user-4",
+    "email": "jane.smith@example.com",
+    "name": "Jane Smith",
+    "organizationName": "XYZ Corp",
+    "role": "user",
+    "createdAt": "2023-01-04T00:00:00.000Z",
+    "updatedAt": "2023-01-04T00:00:00.000Z"
+  },
+  {
+    "id": "user-5",
+    "email": "alex.johnson@example.com",
+    "name": "Alex Johnson",
+    "organizationName": "Johnson & Co",
+    "role": "user",
+    "createdAt": "2023-01-05T00:00:00.000Z",
+    "updatedAt": "2023-01-05T00:00:00.000Z"
+  }
+] 
