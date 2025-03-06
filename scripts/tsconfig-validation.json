@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "allowJs": true,
+    "declaration": false,
+    "sourceMap": false,
+    "strict": false,
+    "baseUrl": ".",
+    "rootDir": "."
+  },
+  "include": ["validate-schemas.ts"],
+  "exclude": ["node_modules"]
+} 
