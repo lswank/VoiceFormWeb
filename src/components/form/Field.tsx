@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { Input } from '../Input';
 import { Switch } from '@headlessui/react';
@@ -326,14 +325,14 @@ export function Field({
               min={config.min || 0}
               max={config.max || 100}
               step={config.step || 1}
-              value={config.value || 0}
+              value={typeof config.value === 'string' ? config.value : (config.value as unknown as number) || 0}
               onChange={(e) => onChange?.(e.target.value)}
               disabled={readOnly}
               className="w-full"
             />
             <div className="flex justify-between text-xs text-secondary-500 dark:text-secondary-400">
               <span>{config.min || 0}</span>
-              <span>{config.value || 0}</span>
+              <span>{typeof config.value === 'string' ? config.value : (config.value as unknown as number) || 0}</span>
               <span>{config.max || 100}</span>
             </div>
           </div>
@@ -446,7 +445,7 @@ export function Field({
               type="number"
               step="0.01"
               min="0"
-              value={config.value || ''}
+              value={typeof config.value === 'string' ? config.value : ''}
               onChange={(e) => onChange?.(e.target.value)}
               placeholder="0.00"
               className={twMerge("pl-7", className)}
@@ -486,7 +485,7 @@ export function Field({
             {!readOnly && (
               <Input
                 type="text" 
-                value={config.value || ''}
+                value={typeof config.value === 'string' ? config.value : ''}
                 onChange={(e) => onChange?.(e.target.value)}
                 placeholder="Enter the code above"
                 className={className}
@@ -503,7 +502,7 @@ export function Field({
         return (
           <Input
             type={inputType}
-            value={config.value || ''}
+            value={typeof config.value === 'string' ? config.value : ''}
             onChange={(e) => onChange?.(e.target.value)}
             placeholder={config.placeholder}
             className={className}

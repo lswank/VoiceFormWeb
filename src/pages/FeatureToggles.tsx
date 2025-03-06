@@ -1,5 +1,5 @@
 import { Switch } from '@headlessui/react';
-import { useFeatures } from '../contexts/FeatureContext';
+import { useFeatures } from '../contexts/hooks/useFeatures';
 import { Button } from '../components/Button';
 import { twMerge } from 'tailwind-merge';
 import { 

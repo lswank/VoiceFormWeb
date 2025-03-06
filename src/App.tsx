@@ -13,8 +13,10 @@ import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
 import { Billing } from './pages/Billing';
 import { FeatureToggles } from './pages/FeatureToggles';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { FeatureProvider } from './contexts/FeatureContext';
+import { AuthProvider } from './contexts/auth/AuthProvider';
+import { useAuth } from './contexts/hooks/useAuth';
+import { FeatureProvider } from './contexts/feature/FeatureProvider';
+import { ThemeProvider } from './contexts/theme/ThemeProvider';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { Toaster } from 'react-hot-toast';
@@ -99,14 +101,16 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <FeatureProvider>
-        <Elements stripe={stripePromise}>
-          <AppRoutes />
-          <Toaster position="top-right" />
-        </Elements>
-      </FeatureProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <FeatureProvider>
+          <Elements stripe={stripePromise}>
+            <AppRoutes />
+            <Toaster position="top-right" />
+          </Elements>
+        </FeatureProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

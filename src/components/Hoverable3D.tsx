@@ -1,5 +1,5 @@
 import { useState, useCallback, ReactNode, ElementType, MouseEvent } from 'react';
-import { useFeatures } from '../contexts/FeatureContext';
+import { useFeatures } from '../contexts/hooks/useFeatures';
 
 interface Position {
   x: number;

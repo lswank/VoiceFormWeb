@@ -16,7 +16,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/hooks/useTheme';
 
 interface ThemeSettings {
   reduceMotion: boolean;
