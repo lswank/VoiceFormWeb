@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "validate-schemas": "node scripts/validate-schemas-runner.cjs",
+    "validate-schemas": "node scripts/validate-schemas.cjs",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
