@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { DocumentArrowUpIcon } from '@heroicons/react/24/outline';
 import { twMerge } from 'tailwind-merge';
@@ -9,8 +9,6 @@ interface PDFUploadProps {
 }
 
 export function PDFUpload({ onFileSelect, className }: PDFUploadProps) {
-  const [isDragging, setIsDragging] = useState(false);
-
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file && file.type === 'application/pdf') {

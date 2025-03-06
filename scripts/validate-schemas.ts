@@ -1,6 +1,5 @@
 import { glob } from 'glob';
 import * as ts from 'typescript';
-import * as path from 'path';
 import * as fs from 'fs';
 
 interface ValidationResult {
@@ -131,27 +130,6 @@ function findImportDeclaration(sourceFile: ts.SourceFile, typeName: string): ts.
   });
 
   return result;
-}
-
-function getApiPath(node: ts.Node): string | undefined {
-  let current = node;
-  while (current && current.parent) {
-    if (ts.isCallExpression(current.parent) && 
-        ts.isIdentifier(current.parent.expression) && 
-        current.parent.expression.text === 'fetch') {
-      // Found the fetch call, extract the URL path
-      if (current.parent.arguments.length > 0) {
-        const urlArg = current.parent.arguments[0];
-        if (ts.isTemplateExpression(urlArg)) {
-          return urlArg.getText();
-        } else if (ts.isStringLiteral(urlArg)) {
-          return urlArg.text;
-        }
-      }
-    }
-    current = current.parent;
-  }
-  return undefined;
 }
 
 function findContainingMethod(node: ts.Node): string | undefined {

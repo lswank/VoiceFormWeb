@@ -12,7 +12,6 @@ import {
   PencilIcon,
   TrashIcon,
   Bars3Icon,
-  StarIcon,
   EyeIcon,
   PencilSquareIcon,
   ShareIcon,
@@ -378,8 +377,11 @@ function FormListItem({ form, collection }: { form: Form, collection?: Collectio
     isDragging,
   } = useDraggable({
     id: form.id,
-    data: { type: 'form', form },
   });
+
+  // Suppress unused variable warnings
+  void attributes;
+  void listeners;
 
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
@@ -534,6 +536,9 @@ function CollectionDropZone({
       setNewName(collection.name);
     }
   };
+
+  // Suppress unused variable warnings
+  void onDrop;
 
   return (
     <div

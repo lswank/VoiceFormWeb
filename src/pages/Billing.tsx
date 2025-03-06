@@ -1,11 +1,8 @@
 import { useState, useRef, Fragment } from 'react';
 import { Button } from '../components/Button';
-import { Switch } from '@headlessui/react';
 import {
   CreditCardIcon,
   DocumentTextIcon,
-  ChartBarIcon,
-  CheckIcon,
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -286,6 +283,7 @@ export function Billing() {
       isDefault: true,
     },
   ]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: 'inv_1',
@@ -296,11 +294,18 @@ export function Billing() {
     },
     {
       id: 'inv_2',
-      date: '2023-12-01',
+      date: '2024-02-01',
       amount: 29,
       status: 'paid',
       downloadUrl: '#',
     },
+    {
+      id: 'inv_3',
+      date: '2024-03-01',
+      amount: 29,
+      status: 'paid',
+      downloadUrl: '#',
+    }
   ]);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [isChangingPlan, setIsChangingPlan] = useState(false);
@@ -311,11 +316,6 @@ export function Billing() {
     forms: 2,
     responses: 75,
     storage: 50,
-  };
-
-  const handleAddPaymentMethod = () => {
-    // TODO: Implement payment method addition
-    console.log('Add payment method');
   };
 
   const handleRemovePaymentMethod = (id: string) => {
@@ -346,6 +346,7 @@ export function Billing() {
   };
 
   const handlePaymentSuccess = () => {
+    setIsPaymentModalOpen(false);
     // TODO: Refresh payment methods list
     console.log('Payment method added successfully');
   };

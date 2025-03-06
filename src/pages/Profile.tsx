@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { Switch } from '@headlessui/react';
 import { twMerge } from 'tailwind-merge';
 import { UserCircleIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import { emailService } from '../services/emailService';
 import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
 

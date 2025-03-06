@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 interface AudioWaveformProps {
   isRecording: boolean;
-  className?: string;
 }
 
-export function AudioWaveform({ isRecording, className }: AudioWaveformProps) {
+export function AudioWaveform({ isRecording }: AudioWaveformProps) {
   const [time, setTime] = useState(0);
   const frameRef = useRef<number | undefined>(undefined);
   

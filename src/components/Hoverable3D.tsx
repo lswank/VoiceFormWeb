@@ -1,4 +1,4 @@
-import { useState, useCallback, ReactNode, ElementType } from 'react';
+import { useState, useCallback, ReactNode, ElementType, MouseEvent } from 'react';
 import { useFeatures } from '../contexts/FeatureContext';
 
 interface Position {
@@ -12,7 +12,6 @@ interface Hoverable3DProps<T extends ElementType = 'div'> {
   intensity?: 'small' | 'medium' | 'large';
   shadowOpacity?: number;
   as?: T;
-  [key: string]: any; // For additional props passed to the element
 }
 
 export function Hoverable3D<T extends ElementType = 'div'>({ 
@@ -28,16 +27,6 @@ export function Hoverable3D<T extends ElementType = 'div'>({
   const [rotation, setRotation] = useState<Position>({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
-  // If parallax is disabled, render without effects
-  if (!features.enableParallax) {
-    const Component = as || 'div';
-    return (
-      <Component {...props} className={`relative block ${className}`}>
-        {children}
-      </Component>
-    );
-  }
-
   // Scale the effect based on intensity
   const intensityMap = {
     small: { rotate: 2, move: 4, lift: 10 },
@@ -47,7 +36,8 @@ export function Hoverable3D<T extends ElementType = 'div'>({
 
   const { rotate, move, lift } = intensityMap[intensity];
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  // Define handleMouseMove here, outside of any conditional
+  const handleMouseMove = useCallback((e: MouseEvent<HTMLElement>) => {
     if (!isHovering) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -66,7 +56,17 @@ export function Hoverable3D<T extends ElementType = 'div'>({
     setPosition({ x: moveX, y: moveY });
   }, [isHovering, rotate, move]);
 
+  // Define Component outside the conditional
   const Component = as || 'div';
+
+  // Conditional rendering after all hooks are called
+  if (!features.enableParallax) {
+    return (
+      <Component {...props} className={`relative block ${className}`}>
+        {children}
+      </Component>
+    );
+  }
 
   return (
     <div className="relative">

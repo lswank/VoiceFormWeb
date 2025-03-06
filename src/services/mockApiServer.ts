@@ -5,15 +5,7 @@ import formsData from '../data/mock/forms.json';
 import formResponsesData from '../data/mock/formResponses.json';
 import formPermissionsData from '../data/mock/formPermissions.json';
 import emailPreferencesData from '../data/mock/emailPreferences.json';
-
-// Import our mock data
-import { 
-  mockUsers, 
-  mockForms, 
-  mockFormResponses, 
-  mockFormPermissions, 
-  mockEmailPreferences 
-} from '../data/mockData';
+import type { FieldType } from '../schemas/form';
 
 // Type definitions for MirageJS
 interface FormField {
@@ -52,14 +44,14 @@ interface UserData {
   id: string;
   email: string;
   name: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface FormResponseData {
   id: string;
   formId: string;
   respondentId?: string;
-  data: any;
+  data: Record<string, unknown>;
   submittedAt: string;
 }
 
@@ -238,7 +230,10 @@ export function makeServer({ environment = 'development' }: { environment?: stri
       console.log("MirageJS routes configured with namespace:", this.namespace);
       
       // Log all requests for debugging
-      this.pretender.handledRequest = function(verb, path, request) {
+      this.pretender.handledRequest = function(verb, path, 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request
+      ) {
         console.log(`[Mock API] ${verb} ${path}`);
       };
 
@@ -265,7 +260,10 @@ export function makeServer({ environment = 'development' }: { environment?: stri
         };
       });
 
-      this.get('/auth/me', (schema, request) => {
+      this.get('/auth/me', (schema, 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request
+      ) => {
         console.log('AUTH: Get current user');
         const user = schema.db.users.findBy({ id: 'user-1' }); // Simplified - always return first user
         console.log('AUTH: Returning user', user?.id || 'none');
@@ -314,7 +312,10 @@ export function makeServer({ environment = 'development' }: { environment?: stri
       });
 
       // FORM ENDPOINTS
-      this.get('/forms', (schema, request) => {
+      this.get('/forms', (schema, 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request
+      ) => {
         console.log('[Mock API] GET /forms - Processing request');
         try {
           const formsFromDb = schema.db.forms || [];
@@ -327,8 +328,8 @@ export function makeServer({ environment = 'development' }: { environment?: stri
               let fields = typeof form.fields === 'string' ? JSON.parse(form.fields) : form.fields;
               
               // Map incompatible field types to compatible ones
-              fields = fields.map((field: any) => {
-                const fieldCopy = { ...field };
+              fields = fields.map((field: Record<string, unknown>) => {
+                const fieldCopy = { ...field } as { type: string | FieldType };
                 
                 // Transform field types to match what's expected by the schema
                 switch(fieldCopy.type) {
@@ -395,8 +396,8 @@ export function makeServer({ environment = 'development' }: { environment?: stri
           let fields = typeof formRecord.fields === 'string' ? JSON.parse(formRecord.fields) : formRecord.fields;
           
           // Map incompatible field types to compatible ones
-          fields = fields.map((field: any) => {
-            const fieldCopy = { ...field };
+          fields = fields.map((field: Record<string, unknown>) => {
+            const fieldCopy = { ...field } as { type: string | FieldType };
             
             // Transform field types to match what's expected by the schema
             switch(fieldCopy.type) {
@@ -450,7 +451,7 @@ export function makeServer({ environment = 'development' }: { environment?: stri
         const form = schema.create('form', {
           ...attrs,
           fields: JSON.stringify(formFields),
-          id: attrs.id || uuidv4(),
+          id: (typeof attrs.id === 'string' ? attrs.id : undefined) || uuidv4(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
@@ -552,15 +553,15 @@ export function makeServer({ environment = 'development' }: { environment?: stri
         const permissions = JSON.parse(request.requestBody);
         
         // Delete existing permissions
-        schema.db.formPermissions.where({ formId }).forEach((permission: any) => {
-          schema.db.formPermissions.remove(permission.id);
+        schema.db.formPermissions.where({ formId }).forEach((permission: Record<string, unknown>) => {
+          schema.db.formPermissions.remove(permission.id as string);
         });
         
         // Create new permissions
-        const newPermissions = permissions.map((permission: any) => 
+        const newPermissions = permissions.map((permission: Record<string, unknown>) => 
           schema.create('formPermission', {
             ...permission,
-            id: permission.id || uuidv4(),
+            id: (typeof permission.id === 'string' ? permission.id : undefined) || uuidv4(),
             formId,
           }).attrs
         );
@@ -574,7 +575,7 @@ export function makeServer({ environment = 'development' }: { environment?: stri
         
         return schema.create('formPermission', {
           ...permission,
-          id: permission.id || uuidv4(),
+          id: (typeof permission.id === 'string' ? permission.id : undefined) || uuidv4(),
           formId,
         }).attrs;
       });
@@ -603,9 +604,9 @@ export function makeServer({ environment = 'development' }: { environment?: stri
         const paginatedResponses = responses.slice(offset, offset + limit);
         
         // Parse the response data
-        const parsedResponses = paginatedResponses.map((response: any) => ({
+        const parsedResponses = paginatedResponses.map((response: Record<string, unknown>) => ({
           ...response,
-          data: response.data ? JSON.parse(response.data) : {}
+          data: typeof response.data === 'string' ? JSON.parse(response.data) : response.data || {}
         }));
         
         return {
@@ -683,6 +684,7 @@ export function makeServer({ environment = 'development' }: { environment?: stri
 
       // AI SERVICE
       this.post('/ai/process', (schema, request) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formData = request.requestBody;
         // In a real implementation, we would process the audio file here
         
@@ -732,7 +734,7 @@ export function makeServer({ environment = 'development' }: { environment?: stri
         const attrs = JSON.parse(request.requestBody);
         const userId = attrs.userId || schema.db.users[0].id;
         
-        let preferences = schema.db.emailPreferences.findBy({ userId });
+        const preferences = schema.db.emailPreferences.findBy({ userId });
         
         if (preferences) {
           schema.db.emailPreferences.remove(preferences.id);
@@ -834,8 +836,13 @@ export function makeServer({ environment = 'development' }: { environment?: stri
       
       // Capture ALL HTTP methods globally
       ["get", "post", "put", "patch", "delete"].forEach((method: string) => {
-        // Cast this to any to avoid TypeScript error
-        (this as any)[method]("/*path", function(schema: any, request: any) {
+        // Need to use type assertion for dynamic method access
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any)[method]("/*path", function(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          schema: any, 
+          request: { params: { path: string } }
+        ) {
           console.log(`CATCHALL ${method.toUpperCase()}: ${request.params.path}`);
           return new Response(404, {}, { error: `No handler for ${method} ${request.params.path}` });
         }, { timing: 0 });

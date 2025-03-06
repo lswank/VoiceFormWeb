@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -17,8 +17,6 @@ import {
 } from '@dnd-kit/sortable';
 import { type FieldConfig, type FieldType } from './Field';
 import { FieldPalette } from './FieldPalette';
-import { Button } from '../Button';
-import { Input } from '../Input';
 import type { Form } from '../../schemas/form';
 import { SortableField } from './SortableField';
 import { Field } from './Field';
@@ -181,7 +179,7 @@ export function FormBuilder({
     
     const fieldId = `field-${fieldIdCounter++}`;
     
-    let newField: FieldConfig = {
+    const newField: FieldConfig = {
       id: fieldId,
       type,
       label: `New ${type} field`,

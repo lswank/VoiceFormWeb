@@ -1,7 +1,6 @@
 // CommonJS version of the validation script
 const glob = require('glob');
 const ts = require('typescript');
-const path = require('path');
 const fs = require('fs');
 
 // Add a test warning
@@ -129,27 +128,6 @@ function findImportDeclaration(sourceFile, typeName) {
   });
 
   return result;
-}
-
-function getApiPath(node) {
-  let current = node;
-  while (current && current.parent) {
-    if (ts.isCallExpression(current.parent) && 
-        ts.isIdentifier(current.parent.expression) && 
-        current.parent.expression.text === 'fetch') {
-      // Found the fetch call, extract the URL path
-      if (current.parent.arguments.length > 0) {
-        const urlArg = current.parent.arguments[0];
-        if (ts.isTemplateExpression(urlArg)) {
-          return urlArg.getText();
-        } else if (ts.isStringLiteral(urlArg)) {
-          return urlArg.text;
-        }
-      }
-    }
-    current = current.parent;
-  }
-  return undefined;
 }
 
 function findContainingMethod(node) {

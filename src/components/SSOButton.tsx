@@ -6,7 +6,7 @@ interface SSOButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
 }
 
-export function SSOButton({ provider, icon, className, children, ...props }: SSOButtonProps) {
+export function SSOButton({ icon, className, children, ...props }: SSOButtonProps) {
   return (
     <button
       type="button"

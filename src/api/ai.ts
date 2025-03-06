@@ -6,7 +6,7 @@ import { fieldSchema } from '../schemas/form';
 export interface AIProcessRequest {
   audioData: Blob;
   fieldContext: z.infer<typeof fieldSchema>;
-  previousResponses?: Record<string, any>;
+  previousResponses?: Record<string, unknown>;
 }
 
 export interface AIProcessResponse {
@@ -18,7 +18,7 @@ export interface AIProcessResponse {
 export interface AIClarifyRequest {
   fieldContext: z.infer<typeof fieldSchema>;
   currentValue: string;
-  previousResponses?: Record<string, any>;
+  previousResponses?: Record<string, unknown>;
 }
 
 export interface AIClarifyResponse {
@@ -65,20 +65,20 @@ export const aiApi = {
       formData.append('previousResponses', JSON.stringify(request.previousResponses));
     }
     
-    return api.post<AIProcessResponse>('/ai/process', formData, aiProcessResponseSchema);
+    return api.post<AIProcessResponse, FormData>('/ai/process', formData, aiProcessResponseSchema);
   },
   
   /**
    * Generate clarification prompts
    */
   generateClarificationPrompts: (request: AIClarifyRequest) => 
-    api.post<AIClarifyResponse>('/ai/clarify', request, aiClarifyResponseSchema),
+    api.post<AIClarifyResponse, AIClarifyRequest>('/ai/clarify', request, aiClarifyResponseSchema),
   
   /**
    * Validate field response
    */
   validateFieldResponse: (request: AIValidateRequest) => 
-    api.post<AIValidateResponse>('/ai/validate', request, aiValidateResponseSchema)
+    api.post<AIValidateResponse, AIValidateRequest>('/ai/validate', request, aiValidateResponseSchema)
 };
 
 export default aiApi;

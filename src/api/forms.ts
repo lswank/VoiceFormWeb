@@ -105,7 +105,7 @@ export const responsesApi = {
   /**
    * Submit a form response
    */
-  submitFormResponse: (formId: string, responseData: any, respondentId?: string) => {
+  submitFormResponse: (formId: string, responseData: Record<string, unknown>, respondentId?: string) => {
     const payload = {
       data: responseData,
       respondentId,

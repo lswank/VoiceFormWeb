@@ -3,9 +3,7 @@ import type {
   Form, 
   FormResponse, 
   FormAnalytics,
-  FormPermission,
-  FormPermissionRole,
-  FormScope 
+  FormPermission 
 } from '../schemas/form';
 import { config } from '../config';
 import { createRequestValidator, createResponseValidator } from '../utils/validation';
@@ -23,15 +21,15 @@ export type { Form, FormResponse, FormAnalytics };
 
 // Helper functions
 function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
+  return `form-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 function randomDate(start: Date, end: Date): Date {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-// Generate mock responses for a form
-const generateMockResponses = (form: Form): FormResponse[] => {
+// For testing purposes only
+export const generateMockResponses = (form: Form): FormResponse[] => {
   return Array.from({ length: form.responseCount }, () => ({
     id: generateId(),
     formId: form.id,

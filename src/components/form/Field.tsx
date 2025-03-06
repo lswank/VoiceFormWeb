@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { Input } from '../Input';
 import { Switch } from '@headlessui/react';
@@ -61,7 +62,7 @@ function getInputType(fieldType: FieldType): InputType {
 
 interface FieldProps {
   config: FieldConfig;
-  onChange?: (value: any) => void;
+  onChange?: (value: string | string[] | Record<string, string>) => void;
   onUpdate?: (updates: Partial<FieldConfig>) => void;
   readOnly?: boolean;
   className?: string;
@@ -375,9 +376,9 @@ export function Field({
           <div className="space-y-2">
             <Input
               type="text"
-              value={(config.value as any)?.street || ''}
+              value={(config.value as Record<string, string>)?.street || ''}
               onChange={(e) => {
-                const currentValue = (config.value as any) || {};
+                const currentValue = (config.value as Record<string, string>) || {};
                 onChange?.({ ...currentValue, street: e.target.value });
               }}
               placeholder="Street address"
@@ -387,9 +388,9 @@ export function Field({
             <div className="grid grid-cols-2 gap-2">
               <Input
                 type="text"
-                value={(config.value as any)?.city || ''}
+                value={(config.value as Record<string, string>)?.city || ''}
                 onChange={(e) => {
-                  const currentValue = (config.value as any) || {};
+                  const currentValue = (config.value as Record<string, string>) || {};
                   onChange?.({ ...currentValue, city: e.target.value });
                 }}
                 placeholder="City"
@@ -398,9 +399,9 @@ export function Field({
               />
               <Input
                 type="text"
-                value={(config.value as any)?.state || ''}
+                value={(config.value as Record<string, string>)?.state || ''}
                 onChange={(e) => {
-                  const currentValue = (config.value as any) || {};
+                  const currentValue = (config.value as Record<string, string>) || {};
                   onChange?.({ ...currentValue, state: e.target.value });
                 }}
                 placeholder="State/Province"
@@ -411,9 +412,9 @@ export function Field({
             <div className="grid grid-cols-2 gap-2">
               <Input
                 type="text"
-                value={(config.value as any)?.zip || ''}
+                value={(config.value as Record<string, string>)?.zip || ''}
                 onChange={(e) => {
-                  const currentValue = (config.value as any) || {};
+                  const currentValue = (config.value as Record<string, string>) || {};
                   onChange?.({ ...currentValue, zip: e.target.value });
                 }}
                 placeholder="ZIP/Postal code"
@@ -422,9 +423,9 @@ export function Field({
               />
               <Input
                 type="text"
-                value={(config.value as any)?.country || ''}
+                value={(config.value as Record<string, string>)?.country || ''}
                 onChange={(e) => {
-                  const currentValue = (config.value as any) || {};
+                  const currentValue = (config.value as Record<string, string>) || {};
                   onChange?.({ ...currentValue, country: e.target.value });
                 }}
                 placeholder="Country"

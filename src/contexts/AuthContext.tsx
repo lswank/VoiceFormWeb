@@ -21,6 +21,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const login = useCallback(async (email: string, password: string) => {
+    // Suppress unused variable warnings
+    void email;
+    void password;
+    
     // TODO: Implement actual authentication
     setIsAuthenticated(true);
   }, []);

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Field, type FieldConfig } from '../components/form/Field';
+import { Field } from '../components/form/Field';
 import { Button } from '../components/Button';
-import { MicrophoneIcon, PauseIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { MicrophoneIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { twMerge } from 'tailwind-merge';
 import { useVoiceInput } from '../hooks/useVoiceInput';
 import { formService } from '../services/formService';
@@ -11,37 +11,6 @@ import { aiService } from '../services/aiService';
 import { emailService } from '../services/emailService';
 import { AudioWaveform } from '../components/AudioWaveform';
 import toast from 'react-hot-toast';
-
-// Mock form data
-const mockForm = {
-  id: '1',
-  title: 'Customer Feedback',
-  description: 'Please share your thoughts about our service',
-  fields: [
-    {
-      id: 'name',
-      type: 'text',
-      label: 'Your Name',
-      required: true,
-      value: '',
-    },
-    {
-      id: 'email',
-      type: 'email',
-      label: 'Email Address',
-      required: true,
-      value: '',
-    },
-    {
-      id: 'feedback',
-      type: 'textarea',
-      label: 'Your Feedback',
-      required: true,
-      value: '',
-      helpText: 'Please be as specific as possible',
-    },
-  ] as FieldConfig[],
-};
 
 interface ClarificationPrompt {
   fieldId: string;

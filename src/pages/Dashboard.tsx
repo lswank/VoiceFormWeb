@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formService } from '../services/formService';
 import type { Form, FormAnalytics } from '../schemas/form';
@@ -9,11 +9,6 @@ import { Hoverable3D } from '../components/Hoverable3D';
 interface FormWithAnalytics {
   form: Form;
   analytics: FormAnalytics;
-}
-
-interface IconPosition {
-  x: number;
-  y: number;
 }
 
 function StatCard({ 
@@ -49,7 +44,11 @@ function StatCard({
   };
 
   return (
-    <Hoverable3D as={Link} to={href} className="group card-gradient overflow-hidden">
+    <Hoverable3D 
+      as={Link} 
+      className="group card-gradient overflow-hidden"
+      {...{ to: href }}
+    >
       <div className="relative px-4 py-5 sm:p-6">
         <dt className={`truncate text-sm font-medium text-secondary-500 ${colorClasses[color].hover} dark:text-secondary-400`}>
           {title}

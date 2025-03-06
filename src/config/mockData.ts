@@ -1,4 +1,4 @@
-import type { Form, Field, FieldOption, FieldType, FormStatus, FormScope } from '../schemas/form';
+import type { Form, Field, FormStatus, FormScope } from '../schemas/form';
 import type { FormResponse, FormAnalytics } from '../schemas/form';
 
 // Helper functions

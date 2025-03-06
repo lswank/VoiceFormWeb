@@ -16,7 +16,6 @@ interface ImportFormProps {
 
 export function ImportForm({ method, onFileSelect, onUrlSubmit, className }: ImportFormProps) {
   const [url, setUrl] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
 
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];

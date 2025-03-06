@@ -82,7 +82,9 @@ function mockProcessVoiceInput(
 // Mock clarification prompt generation for local-ui mode
 function mockGenerateClarificationPrompt(
   field: FieldConfig,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   transcript: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   context: Record<string, string>
 ): { question: string; options?: string[] } {
   if (field.type === 'select' || field.type === 'multiselect') {

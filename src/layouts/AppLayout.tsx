@@ -2,20 +2,16 @@ import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import {
   UserCircleIcon,
-  PlusIcon,
   HomeIcon,
   ChevronRightIcon,
   DocumentTextIcon,
   ChartBarIcon,
-  Cog6ToothIcon,
   BeakerIcon,
 } from '@heroicons/react/24/outline';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { Button } from '../components/Button';
 import { useForm } from '../hooks/useForm';
 import { Logo } from '../components/Logo';
-import { useTheme } from '../contexts/ThemeContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
@@ -40,7 +36,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const { id } = useParams<{ id?: string }>();
   const { form, isLoading } = useForm(id);
-  const { theme } = useTheme();
   
   // Generate breadcrumb items based on current path
   const getBreadcrumbItems = () => {

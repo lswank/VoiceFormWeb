@@ -3,7 +3,7 @@ import { Switch } from '@headlessui/react';
 import { UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
 import { Button } from '../Button';
 import { Input } from '../Input';
-import type { Form, FormPermission, FormPermissionRole } from '../../schemas/form';
+import type { Form, FormPermissionRole } from '../../schemas/form';
 import { formService } from '../../services/formService';
 import { twMerge } from 'tailwind-merge';
 

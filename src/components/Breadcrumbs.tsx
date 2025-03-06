@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/20/solid';
 
 interface BreadcrumbItem {

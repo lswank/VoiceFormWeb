@@ -6,8 +6,6 @@ import { Button } from '../components/Button';
 import { emailService } from '../services/emailService';
 import {
   SunIcon,
-  MoonIcon,
-  LanguageIcon,
   KeyIcon,
   DocumentArrowDownIcon,
   DocumentArrowUpIcon,

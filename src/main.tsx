@@ -30,7 +30,7 @@ if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_API === 'true') {
   console.log('LOADING MOCK API SERVER');
   import('./services/mockApiServer').then(({ makeServer }) => {
     const server = makeServer({ environment: 'development' });
-    // @ts-ignore - Adding server to window for debugging
+    // @ts-expect-error - Adding server to window for debugging
     window.server = server;
     console.log('MOCK API SERVER INITIALIZED AND ATTACHED TO WINDOW');
   });
