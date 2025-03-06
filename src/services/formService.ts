@@ -11,6 +11,7 @@ import { config } from '../config';
 import { createRequestValidator, createResponseValidator } from '../utils/validation';
 import { z } from 'zod';
 import { mockForms, mockResponses, mockAnalytics } from '../config/mockData';
+import { validateApiResponse, validateApiResponseWithProperty } from '../utils/validation';
 
 // Validators
 const validateForm = createResponseValidator(formSchema);
@@ -67,34 +68,25 @@ class FormService {
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${id}`);
-    const data = await response.json();
-    
-    // Handle response with form property (from mock API) or direct object
-    const formData = data.form || data;
-    return validateForm(formData);
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async getForms(): Promise<Form[]> {
     if (config.environment === 'local-ui') {
-      return z.array(formSchema).parse(mockForms);
+      return mockForms.map(validateForm);
     }
 
     const response = await fetch(`${config.apiUrl}/forms`);
-    const data = await response.json();
-    
-    // Handle response with forms property (from mock API) or direct array
-    const formsData = data.forms || data;
-    return z.array(formSchema).parse(formsData);
+    return validateApiResponse(response, z.array(formSchema));
   }
 
   async getFormResponses(formId: string): Promise<FormResponse[]> {
     if (config.environment === 'local-ui') {
-      return z.array(formResponseSchema).parse(mockResponses[formId] || []);
+      return (mockResponses[formId] || []).map(response => validateFormResponse(response));
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${formId}/responses`);
-    const data = await response.json();
-    return z.array(formResponseSchema).parse(data);
+    return validateApiResponse(response, z.array(formResponseSchema));
   }
 
   async getFormAnalytics(formId: string): Promise<FormAnalytics> {
@@ -107,8 +99,7 @@ class FormService {
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${formId}/analytics`);
-    const data = await response.json();
-    return validateFormAnalytics(data);
+    return validateApiResponse(response, formAnalyticsSchema);
   }
 
   async submitFormResponse(formId: string, data: Record<string, string>): Promise<void> {
@@ -127,39 +118,45 @@ class FormService {
   }
 
   async updateForm(id: string, updates: Partial<Form>): Promise<Form> {
+    // We're validating the full form after updating - no need for partial validation here
+
     if (config.environment === 'local-ui') {
-      const form = await this.getForm(id);
-      const updatedForm = { ...form, ...updates, updatedAt: new Date().toISOString() };
+      const formIndex = mockForms.findIndex(f => f.id === id);
+      if (formIndex === -1) {
+        throw new Error(`Form not found: ${id}`);
+      }
+      
+      const updatedForm = {
+        ...mockForms[formIndex],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      mockForms[formIndex] = updatedForm;
       return validateForm(updatedForm);
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     });
-    const data = await response.json();
-    return validateForm(data);
+    
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async createForm(form: Omit<Form, 'id'>): Promise<Form> {
     if (config.environment === 'local-ui') {
-      const newForm: Form = {
+      const newForm = {
         ...form,
-        id: generateId(),
+        id: `form-${Date.now()}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        scope: form.scope || 'personal', // Default to personal scope
-        permissions: form.scope === 'team' ? [
-          {
-            userId: form.userId,
-            role: 'owner',
-            addedAt: new Date().toISOString(),
-            addedBy: form.userId,
-          }
-        ] : undefined,
+        responseCount: 0,
       };
-      return validateForm(newForm);
+      
+      mockForms.push(newForm as Form);
+      return validateForm(newForm as Form);
     }
 
     const response = await fetch(`${config.apiUrl}/forms`, {
@@ -167,38 +164,35 @@ class FormService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
-    const data = await response.json();
-    return validateForm(data);
+    
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async cloneForm(id: string): Promise<Form> {
     if (config.environment === 'local-ui') {
-      const form = await this.getForm(id);
-      const newForm: Form = {
-        ...form,
-        id: generateId(),
-        title: `${form.title} (Copy)`,
+      const originalForm = mockForms.find(f => f.id === id);
+      if (!originalForm) {
+        throw new Error(`Form not found: ${id}`);
+      }
+      
+      const newForm = {
+        ...originalForm,
+        id: `form-${Date.now()}`,
+        title: `Copy of ${originalForm.title}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         responseCount: 0,
-        scope: form.scope,
-        permissions: form.scope === 'team' ? [
-          {
-            userId: form.userId,
-            role: 'owner',
-            addedAt: new Date().toISOString(),
-            addedBy: form.userId,
-          }
-        ] : undefined,
       };
+      
+      mockForms.push(newForm);
       return validateForm(newForm);
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${id}/clone`, {
       method: 'POST',
     });
-    const data = await response.json();
-    return validateForm(data);
+    
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async updateFormPermissions(formId: string, permissions: FormPermission[]): Promise<Form> {
@@ -207,8 +201,12 @@ class FormService {
       const updatedForm = { 
         ...form, 
         permissions,
-        updatedAt: new Date().toISOString() 
+        updatedAt: new Date().toISOString(),
       };
+      
+      const index = mockForms.findIndex(f => f.id === formId);
+      mockForms[index] = updatedForm;
+      
       return validateForm(updatedForm);
     }
 
@@ -217,23 +215,30 @@ class FormService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ permissions }),
     });
-    const data = await response.json();
-    return validateForm(data);
+    
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async addFormPermission(formId: string, permission: Omit<FormPermission, 'addedAt'>): Promise<Form> {
     if (config.environment === 'local-ui') {
       const form = await this.getForm(formId);
+      
+      if (!form.permissions) {
+        form.permissions = [];
+      }
+      
+      const existingPermission = form.permissions.find(p => p.userId === permission.userId);
+      if (existingPermission) {
+        throw new Error(`User already has permission for this form`);
+      }
+      
       const newPermission = {
         ...permission,
         addedAt: new Date().toISOString(),
       };
-      const updatedForm = {
-        ...form,
-        permissions: [...(form.permissions || []), newPermission],
-        updatedAt: new Date().toISOString(),
-      };
-      return validateForm(updatedForm);
+      
+      const updatedPermissions = [...form.permissions, newPermission];
+      return this.updateFormPermissions(formId, updatedPermissions);
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${formId}/permissions`, {
@@ -241,42 +246,42 @@ class FormService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(permission),
     });
-    const data = await response.json();
-    return validateForm(data);
+    
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async removeFormPermission(formId: string, userId: string): Promise<Form> {
     if (config.environment === 'local-ui') {
       const form = await this.getForm(formId);
-      const updatedForm = {
-        ...form,
-        permissions: form.permissions?.filter(p => p.userId !== userId) || [],
-        updatedAt: new Date().toISOString(),
-      };
-      return validateForm(updatedForm);
+      
+      if (!form.permissions || form.permissions.length === 0) {
+        throw new Error(`No permissions to remove`);
+      }
+      
+      const updatedPermissions = form.permissions.filter(p => p.userId !== userId);
+      
+      if (updatedPermissions.length === form.permissions.length) {
+        throw new Error(`User does not have permission for this form`);
+      }
+      
+      return this.updateFormPermissions(formId, updatedPermissions);
     }
 
     const response = await fetch(`${config.apiUrl}/forms/${formId}/permissions/${userId}`, {
       method: 'DELETE',
     });
-    const data = await response.json();
-    return validateForm(data);
+    
+    return validateApiResponseWithProperty(response, formSchema, 'form');
   }
 
   async getAccessibleForms(userId: string): Promise<Form[]> {
     if (config.environment === 'local-ui') {
-      return z.array(formSchema).parse(
-        mockForms.filter(form => 
-          form.userId === userId || // Creator
-          form.scope === 'personal' || // Personal forms
-          form.permissions?.some(p => p.userId === userId) // Has permission
-        )
-      );
+      // In local-ui mode, all forms are accessible
+      return mockForms.map(validateForm);
     }
 
-    const response = await fetch(`${config.apiUrl}/forms/accessible/${userId}`);
-    const data = await response.json();
-    return z.array(formSchema).parse(data);
+    const response = await fetch(`${config.apiUrl}/users/${userId}/forms`);
+    return validateApiResponse(response, z.array(formSchema));
   }
 }
 

@@ -1,14 +1,21 @@
 import { z } from 'zod';
+import { validateApiResponse } from '../utils/validation';
 
 // Base API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/v1';
 
-// Error type
+// Error type and schema
 export interface ApiError {
   code: string;
   message: string;
   details?: Record<string, unknown>;
 }
+
+const apiErrorSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  details: z.record(z.unknown()).optional()
+});
 
 // Common fetch wrapper with error handling
 async function fetchApi<T>(
@@ -37,11 +44,19 @@ async function fetchApi<T>(
     // Handle unsuccessful response
     if (!response.ok) {
       const errorData = await response.json();
-      throw {
-        code: errorData.code || response.status.toString(),
-        message: errorData.message || response.statusText,
-        details: errorData.details
-      } as ApiError;
+      
+      // Validate the error data with our schema
+      try {
+        const validatedError = apiErrorSchema.parse(errorData);
+        throw validatedError;
+      } catch (validationError) {
+        // If validation fails, create a standardized error
+        throw {
+          code: errorData.code || response.status.toString(),
+          message: errorData.message || response.statusText,
+          details: errorData.details || { validationError }
+        } as ApiError;
+      }
     }
     
     // Empty response for 204 status
@@ -49,24 +64,13 @@ async function fetchApi<T>(
       return {} as T;
     }
     
-    // Parse JSON response
-    const data = await response.json();
-    
-    // Validate with schema if provided
+    // If schema is provided, use our validateApiResponse utility
     if (schema) {
-      try {
-        return schema.parse(data);
-      } catch (error) {
-        console.error('API response validation error:', error);
-        throw {
-          code: 'VALIDATION_ERROR',
-          message: 'API response validation failed',
-          details: { error }
-        } as ApiError;
-      }
+      return validateApiResponse(response, schema);
     }
     
-    return data as T;
+    // If no schema provided, use a basic schema to validate it's a valid object or array
+    return validateApiResponse(response, z.union([z.record(z.unknown()), z.array(z.unknown())])) as T;
   } catch (error) {
     if ((error as ApiError).code) {
       throw error;

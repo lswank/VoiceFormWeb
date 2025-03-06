@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
-import { formService, type Form } from '../services/formService';
+import { formService } from '../services/formService';
+import { type Form } from '../schemas/form';
 
 export function FormSuccess() {
   const { id } = useParams<{ id: string }>();
