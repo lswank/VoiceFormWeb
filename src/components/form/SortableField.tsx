@@ -1,13 +1,15 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Field, type FieldConfig } from './Field';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 
 interface SortableFieldProps {
   field: FieldConfig;
   onUpdate: (fieldId: string, updates: Partial<FieldConfig>) => void;
   onRemove: (fieldId: string) => void;
   readOnly?: boolean;
+  isHighlighted?: boolean;
 }
 
 export function SortableField({
@@ -15,6 +17,7 @@ export function SortableField({
   onUpdate,
   onRemove,
   readOnly = false,
+  isHighlighted = false,
 }: SortableFieldProps) {
   const {
     attributes,
@@ -33,21 +36,49 @@ export function SortableField({
     transition,
   };
 
+  // Add a highlight animation effect
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  useEffect(() => {
+    if (isHighlighted) {
+      setIsFlashing(true);
+      const timer = setTimeout(() => setIsFlashing(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isHighlighted]);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative rounded-lg border border-secondary-200 bg-white p-4 dark:border-secondary-700 dark:bg-secondary-800 ${
-        isDragging ? 'opacity-50' : ''
-      } ${!readOnly ? 'group cursor-move' : ''}`}
-      {...(!readOnly ? attributes : {})}
-      {...(!readOnly ? listeners : {})}
+      id={`field-container-${field.id}`}
+      className={`relative rounded-lg border ${
+        isDragging 
+          ? 'border-primary-500 shadow-lg dark:border-primary-400 opacity-50 z-10 bg-primary-50 dark:bg-primary-900/20' 
+          : isFlashing
+            ? 'border-primary-500 shadow-lg dark:border-primary-400 bg-primary-50/50 dark:bg-primary-900/20 transition-colors duration-500'
+            : 'border-secondary-200 bg-white dark:border-secondary-700 dark:bg-secondary-800'
+      } p-4 ${!readOnly ? 'group' : ''}`}
     >
-      <Field
-        config={field}
-        onChange={(value) => onUpdate(field.id, { value })}
-        readOnly={readOnly}
-      />
+      {!readOnly && (
+        <div className="absolute left-2 top-2 flex items-center space-x-1">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1 rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-700"
+          >
+            <Bars3Icon className="h-5 w-5 text-secondary-400 dark:text-secondary-500" />
+          </div>
+        </div>
+      )}
+      
+      <div className={!readOnly ? 'pl-8' : ''}>
+        <Field
+          config={field}
+          onChange={(value) => onUpdate(field.id, { value })}
+          readOnly={readOnly}
+        />
+      </div>
       
       {!readOnly && (
         <button

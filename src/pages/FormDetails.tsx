@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FormBuilder } from '../components/form/FormBuilder';
@@ -18,10 +18,13 @@ import {
   ArchiveBoxIcon,
   DocumentCheckIcon,
   UsersIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { ShareDropdown } from './Forms';
+import { FieldPalette } from '../components/form/FieldPalette';
+import { type FieldType } from '../components/form/Field';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -170,6 +173,7 @@ export function FormDetails() {
     show: false,
     type: 'publish',
   });
+  const [newlyAddedFieldId, setNewlyAddedFieldId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -230,6 +234,10 @@ export function FormDetails() {
     } catch (err) {
       console.error('Failed to clone form:', err);
     }
+  };
+
+  const handlePreview = () => {
+    window.open(`/respond/form-1`, '_blank');
   };
 
   const statusDialogConfigs = {
@@ -315,7 +323,53 @@ export function FormDetails() {
               </div>
             </div>
           )}
-          <FormBuilder form={form} readOnly={form.status === 'published'} />
+          
+          <div className="flex gap-6">
+            {/* Toolbox pane - sticky sidebar */}
+            {form.status !== 'published' && (
+              <div className="w-64 shrink-0">
+                <div className="sticky top-4 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg border border-secondary-200 p-4 dark:border-secondary-700">
+                  <h3 className="text-sm font-medium text-secondary-900 dark:text-white">
+                    Form Components
+                  </h3>
+                  <div className="mt-4">
+                    <FieldPalette onSelect={(type: FieldType) => {
+                      // Create a new field with the selected type
+                      const newField = {
+                        id: `field-${Date.now()}`,
+                        type,
+                        label: `New ${type} field`,
+                        required: false,
+                      };
+                      
+                      // Update the form with the new field
+                      const updatedFields = [...form.fields, newField];
+                      formService.updateForm(form.id, {...form, fields: updatedFields})
+                        .then(() => {
+                          mutate({...form, fields: updatedFields});
+                          // Set the newly added field ID
+                          setNewlyAddedFieldId(newField.id);
+                        })
+                        .catch(err => {
+                          console.error('Failed to add field:', err);
+                        });
+                    }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Form builder - main content */}
+            <div className="flex-1">
+              <FormBuilder 
+                form={form} 
+                readOnly={form.status === 'published'} 
+                hideAddField={true}
+                newlyAddedFieldId={newlyAddedFieldId}
+                onFieldFocused={() => setNewlyAddedFieldId(null)}
+              />
+            </div>
+          </div>
         </div>
       ),
       show: true,
@@ -372,6 +426,14 @@ export function FormDetails() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={handlePreview}
+          >
+            <EyeIcon className="-ml-1 mr-2 h-5 w-5" />
+            Preview
+          </Button>
+
           {form.status === 'draft' && (
             <Button
               onClick={() => setStatusDialog({ show: true, type: 'publish' })}

@@ -9,6 +9,18 @@ import {
   ListBulletIcon,
   Square2StackIcon,
   MicrophoneIcon,
+  PhoneIcon,
+  GlobeAltIcon,
+  RadioIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  ArrowsPointingOutIcon,
+  ClockIcon,
+  CalendarDaysIcon,
+  CurrencyDollarIcon,
+  MapPinIcon,
+  StarIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import { twMerge } from 'tailwind-merge';
 import { Hoverable3D } from '../Hoverable3D';
@@ -62,6 +74,84 @@ const fieldTypes: FieldTypeOption[] = [
     label: 'Voice Input',
     icon: MicrophoneIcon,
     description: 'Voice recording input',
+  },
+  {
+    type: 'phone',
+    label: 'Phone',
+    icon: PhoneIcon,
+    description: 'Phone number input',
+  },
+  {
+    type: 'url',
+    label: 'URL',
+    icon: GlobeAltIcon,
+    description: 'Website URL input',
+  },
+  {
+    type: 'radio',
+    label: 'Radio Buttons',
+    icon: RadioIcon,
+    description: 'Single choice selection',
+  },
+  {
+    type: 'checkbox',
+    label: 'Checkbox',
+    icon: CheckIcon,
+    description: 'Yes/No checkbox',
+  },
+  {
+    type: 'checkbox-group',
+    label: 'Checkbox Group',
+    icon: CheckCircleIcon,
+    description: 'Multiple checkbox selection',
+  },
+  {
+    type: 'toggle',
+    label: 'Toggle Switch',
+    icon: ArrowsPointingOutIcon,
+    description: 'On/Off toggle switch',
+  },
+  {
+    type: 'time',
+    label: 'Time',
+    icon: ClockIcon,
+    description: 'Time selector',
+  },
+  {
+    type: 'datetime',
+    label: 'Date & Time',
+    icon: CalendarDaysIcon,
+    description: 'Date and time selection',
+  },
+  {
+    type: 'slider',
+    label: 'Slider',
+    icon: ArrowsPointingOutIcon,
+    description: 'Range slider control',
+  },
+  {
+    type: 'star-rating',
+    label: 'Star Rating',
+    icon: StarIcon,
+    description: 'Star rating selector',
+  },
+  {
+    type: 'address',
+    label: 'Address',
+    icon: MapPinIcon,
+    description: 'Complete address form',
+  },
+  {
+    type: 'currency',
+    label: 'Currency',
+    icon: CurrencyDollarIcon,
+    description: 'Monetary amount input',
+  },
+  {
+    type: 'captcha',
+    label: 'CAPTCHA',
+    icon: ShieldCheckIcon,
+    description: 'Human verification',
   },
 ];
 
@@ -123,7 +213,7 @@ interface FieldPaletteProps {
 
 export function FieldPalette({ onSelect }: FieldPaletteProps) {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="flex flex-col space-y-2">
       {fieldTypes.map((fieldType) => (
         <Hoverable3D
           key={fieldType.type}
@@ -131,9 +221,9 @@ export function FieldPalette({ onSelect }: FieldPaletteProps) {
           type="button"
           onClick={() => onSelect(fieldType.type)}
           intensity="medium"
-          className="flex items-start gap-3 rounded-lg border border-secondary-200 bg-white p-4 text-left transition-all hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
+          className="flex w-full items-start gap-3 rounded-lg border border-secondary-200 bg-white p-3 text-left transition-all hover:border-primary-500 hover:ring-1 hover:ring-primary-500 dark:border-secondary-700 dark:bg-secondary-800 dark:hover:border-primary-400 dark:hover:ring-primary-400"
         >
-          <fieldType.icon className="h-6 w-6 text-secondary-400 transition-colors group-hover:text-primary-500 dark:text-secondary-500 dark:group-hover:text-primary-400" />
+          <fieldType.icon className="h-5 w-5 text-secondary-400 transition-colors group-hover:text-primary-500 dark:text-secondary-500 dark:group-hover:text-primary-400" />
           <div>
             <p className="text-sm font-medium text-secondary-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
               {fieldType.label}
