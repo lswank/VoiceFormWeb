@@ -27,4 +27,21 @@ jobs:
     - name: Schema validation
       run: |
         # Add custom script to validate all schemas are properly used
-        npm run validate-schemas 
+        npm run validate-schemas
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Lint
+      run: npm run lint 
