@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { formService } from '../services/formService';
 import type { Form, FormStatus } from '../schemas/form';
 import { 
@@ -31,6 +31,7 @@ import { Switch, Menu, Transition } from '@headlessui/react';
 import { twMerge } from 'tailwind-merge';
 import toast from 'react-hot-toast';
 import { Hoverable3D } from '../components/Hoverable3D';
+import { PdfFormUploader } from '../components/form/PdfFormUploader';
 
 interface Collection {
   id: string;
@@ -645,6 +646,7 @@ export function Forms() {
   const [error, setError] = useState<string | null>(null);
   const [isAddingCollection, setIsAddingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const collection = searchParams.get('collection');
@@ -733,6 +735,10 @@ export function Forms() {
     return form.collectionId === selectedCollection;
   });
 
+  const handleFormCreated = (formId: string) => {
+    navigate(`/forms/${formId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -753,15 +759,14 @@ export function Forms() {
     <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-secondary-900 dark:text-white">Forms</h1>
-            <p className="mt-2 text-sm text-secondary-700 dark:text-secondary-400">
-              Create and manage your forms
-            </p>
+          <div className="flex items-center space-x-4">
+            <Button onClick={() => navigate('/forms/new')}>
+              <PlusIcon className="mr-2 h-5 w-5" />
+              New Form
+            </Button>
+            <PdfFormUploader onFormCreated={handleFormCreated} />
           </div>
-          <div className="flex items-center gap-x-4">
-            <ViewToggle view={view} onChange={setView} />
-          </div>
+          <ViewToggle view={view} onChange={setView} />
         </div>
 
         <div className="flex gap-6">

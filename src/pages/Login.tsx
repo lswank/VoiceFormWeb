@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth/AuthContext';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { SSOButton } from '../components/SSOButton';

@@ -1,7 +1,6 @@
-import { Switch } from '@headlessui/react';
 import { useFeatures } from '../contexts/hooks/useFeatures';
 import { Button } from '../components/Button';
-import { twMerge } from 'tailwind-merge';
+import { Switch } from '../components/ui/switch';
 import { 
   CubeTransparentIcon, 
   BeakerIcon, 
@@ -40,19 +39,7 @@ function FeatureToggle({
       <Switch
         checked={enabled}
         onChange={onChange}
-        className={twMerge(
-          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900',
-          enabled ? 'bg-primary-600' : 'bg-secondary-200 dark:bg-secondary-700'
-        )}
-      >
-        <span className="sr-only">Toggle {name}</span>
-        <span
-          className={twMerge(
-            'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-            enabled ? 'translate-x-5' : 'translate-x-0'
-          )}
-        />
-      </Switch>
+      />
     </div>
   );
 }
@@ -86,11 +73,17 @@ export function FeatureToggles() {
             <FeatureToggle
               name="3D Parallax Effect"
               description="Enable the 3D hover effect on cards and buttons throughout the application"
-              enabled={features.enableParallax}
-              onChange={(enabled) => setFeature('enableParallax', enabled)}
+              enabled={features.enableParallaxEffects}
+              onChange={(enabled) => setFeature('enableParallaxEffects', enabled)}
               icon={SparklesIcon}
             />
-            {/* Add more UI feature toggles here */}
+            <FeatureToggle
+              name="PDF Form Import"
+              description="Import existing forms from PDF documents using OCR"
+              enabled={features.enablePdfFormImport}
+              onChange={(enabled) => setFeature('enablePdfFormImport', enabled)}
+              icon={SparklesIcon}
+            />
           </div>
         </div>
       </div>

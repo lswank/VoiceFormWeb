@@ -374,8 +374,8 @@ export function makeServer({ environment = 'development' }: { environment?: stri
           });
           
           console.log(`[Mock API] Returning ${forms.length} forms`);
-          // Return wrapped in an object with forms property
-          return { forms };
+          // Return the forms array directly
+          return forms;
         } catch (error) {
           console.error('[Mock API] Error in GET /forms:', error);
           return new Response(500, {}, { error: 'Internal server error' });
@@ -776,9 +776,12 @@ export function makeServer({ environment = 'development' }: { environment?: stri
       });
 
       // PDF SERVICE
-      this.post('/pdf/extract', () => {
-        return {
-          fields: [
+      this.post('/pdf/extract', (schema, request) => {
+        console.log('[Mock API] POST /pdf/extract - Processing request');
+        try {
+          // In a real implementation, we would process the PDF file here
+          // For now, return mock form fields
+          const fields = [
             {
               id: uuidv4(),
               type: 'text',
@@ -800,8 +803,21 @@ export function makeServer({ environment = 'development' }: { environment?: stri
               placeholder: 'Enter your phone number',
               required: false,
             },
-          ]
-        };
+            {
+              id: uuidv4(),
+              type: 'textarea',
+              label: 'Additional Comments',
+              placeholder: 'Any additional information...',
+              required: false,
+            }
+          ];
+
+          console.log('[Mock API] Returning mock form fields');
+          return { fields };
+        } catch (error) {
+          console.error('[Mock API] Error in POST /pdf/extract:', error);
+          return new Response(500, {}, { error: 'Internal server error' });
+        }
       });
 
       // USER ENDPOINTS

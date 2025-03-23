@@ -1,12 +1,14 @@
 import { createContext } from 'react';
 
 export interface FeatureFlags {
-  enableParallax: boolean;
+  enableParallaxEffects: boolean;
+  enablePdfFormImport: boolean;
   // Add more feature flags here as needed
 }
 
 export const DEFAULT_FEATURES: FeatureFlags = {
-  enableParallax: true,
+  enableParallaxEffects: false,
+  enablePdfFormImport: false,
 };
 
 export interface FeatureContextType {
